@@ -10,7 +10,7 @@ class Color
     unsigned char B;
 
     public : 
-        Point( unsigned char init_R, unsigned char init_G, unsigned char init_B ) : R(init_R), G(init_G), B(init_B) {}
+        Color( unsigned char init_R = 0, unsigned char init_G = 0, unsigned char init_B = 0 ) : R(init_R), G(init_G), B(init_B) {}
 
         void setR( float val ) { R = val; }
         void setG( float val ) { G = val; }

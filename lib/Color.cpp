@@ -9,11 +9,8 @@ void Color::set( float new_R, float new_G, float new_B )
 
 void Color::set( std::string color )
 {
-    switch( color )
-    {
-        case "red" : set(255, 0, 0); break;
-        case "green" : set(0, 255, 0); break;
-        case "blue" : set(0, 0, 255); break;
-        default : set(0, 0, 0);
-    }
+    if( color == "red" )              { set(255, 0, 0); }
+    else if( color == "green" )       { set(0, 255, 0); }
+    else if( color == "blue" )        { set(0, 0, 255); }
+    else                              { set(0, 0, 255); }
 }

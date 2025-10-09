@@ -3,6 +3,7 @@
 
 #include "Point.hpp"
 #include "Color.hpp"
+#include <vector>
 #include <Eigen/Dense>
 
 using Eigen::MatrixXd;
@@ -22,21 +23,23 @@ class ExempleRosenblatt
     public : 
         ExempleRosenblatt( int nb_points, int nb_weights, float a_linear_equ, float b_linear_equ )
         {
-            self->nb_points = nb_points;
-            points.resize( nb_points );
-            colors.resize( nb_points );
-            class_values.resize( nb_points );
+            nb_points = nb_points;
 
-            self->nb_weights = nb_weights;
-            weights.resize( nb_weights );
+            nb_weights = nb_weights;
 
             a = a_linear_equ;
             b = b_linear_equ;
         }
 
+        // INITIALIZATION
         void populate_points_random( float begin_range = 0.0, float end_range = 1.0, bool is_whole = false );
         void generate_weights();
         void init_classify( std::string class1Color = "blue", std::string class2Color = "red" );
+
+        // MODEL CREATION
+
+
+        // MODEL TRAINING USING ROSENBLATT'S RULE
         
 };
 
