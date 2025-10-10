@@ -11,6 +11,7 @@ class Color
 
     public : 
         Color( unsigned char init_R = 0, unsigned char init_G = 0, unsigned char init_B = 0 ) : R(init_R), G(init_G), B(init_B) {}
+        Color( std::string color ) { set( color ); }
 
         void setR( float val ) { R = val; }
         void setG( float val ) { G = val; }

@@ -24,4 +24,4 @@ main.o : main.cpp
 # 	valgrind --track-origins=yes ./main
 
 clean: 
-	rm -f *.o main
+	rm -f *.o main points.txt bg.txt MSE.txt 

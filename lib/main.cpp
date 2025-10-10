@@ -13,5 +13,10 @@ int main()
     er.generate_weights();
 
     // MODEL TRAINING USING ROSENBLATT'S RULE
-    er.train(100000, 100);
+    er.train(100000, 1000);
+
+    // PRINT FUNCTIONS
+    er.print_points("points.txt");
+    er.print_background("bg.txt");
+    er.print_MSE("MSE.txt");
 }

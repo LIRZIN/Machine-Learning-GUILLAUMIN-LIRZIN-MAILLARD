@@ -53,10 +53,11 @@ float ExempleRosenblatt::predict( Eigen::VectorXd& X_k_with_one )
     return result(0,0) < 0 ? -1 : 1;
 }
 
-void ExempleRosenblatt::train( int nb_iterations, int MSE_interval )
+void ExempleRosenblatt::train( int nb_iterations, int interval )
 {
-    if( MSE_interval > 0 )
+    if( interval > 0 )
     {
+        MSE_interval = interval;
         MSEs.resize(0);
     }
 
@@ -74,8 +75,61 @@ void ExempleRosenblatt::train( int nb_iterations, int MSE_interval )
         MSE += ( Y_k - g_X_k ) * ( Y_k - g_X_k );
         if( MSE_interval > 0 && (i+1)%MSE_interval == 0 )
         {
+            std::cout << MSE/static_cast<float>(MSE_interval) << "\n";
             MSEs.push_back( MSE/static_cast<float>(MSE_interval) );
             MSE = 0;
         }
     }
+}
+
+void ExempleRosenblatt::print_points( std::string pathToFile )
+{
+    std::ofstream file;
+    file.open(pathToFile);
+
+    for( int i = 0; i < points.size(); i++ )
+    {
+        file << points[i][0] << " " << points[i][1] << " ";
+        file << colors[i].getR() << " " << colors[i].getG() << " " << colors[i].getB() << std::endl;
+    }
+
+    file.close();
+}
+
+void ExempleRosenblatt::print_background( std::string pathToFile, std::string class1BG, std::string class2BG )
+{
+    std::ofstream file;
+    file.open(pathToFile);
+
+    for( int x = 0; x <= 100; x++ )
+    {
+        for( int y = 0; y <= 100; y++ )
+        {
+            Point p( static_cast<float>(x)/100.0, static_cast<float>(y)/100.0 );
+            Eigen::VectorXd p_with_one(3);
+            p_with_one[0] = 1;
+            for( int j = 0; j < 2; j++ ) { p_with_one[j+1] = p[j]; }
+            float predicted_value = predict( p_with_one );
+            Color c( predicted_value < 0 ? class2BG : class1BG );
+            
+            file << p[0] << " " << p[1] << " ";
+            file << c.getR() << " " << c.getG() << " " << c.getB() << std::endl;
+        }
+    }
+
+    file.close();
+}
+
+void ExempleRosenblatt::print_MSE( std::string pathToFile, bool print_index )
+{
+    std::ofstream file;
+    file.open(pathToFile);
+
+    for( int i = 0; i < MSEs.size(); i++ )
+    {
+        if( print_index ) { file << (i+1)*MSE_interval << " "; }
+        file << MSEs[i] << std::endl;
+    }
+
+    file.close();
 }

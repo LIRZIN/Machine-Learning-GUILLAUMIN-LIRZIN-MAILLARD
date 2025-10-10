@@ -4,6 +4,7 @@
 #include "Point.hpp"
 #include "Color.hpp"
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <Eigen/Dense>
 
@@ -16,6 +17,8 @@ class ExempleRosenblatt
 
     int nb_weights;
     Eigen::VectorXd weights;
+
+    int MSE_interval;
     std::vector<float> MSEs;
     
     float a, b, alpha; // y = a * x + b
@@ -32,7 +35,12 @@ class ExempleRosenblatt
         float predict( Eigen::VectorXd& X_k_with_one );
 
         // MODEL TRAINING USING ROSENBLATT'S RULE
-        void train( int nb_iterations, int MSE_interval = 0 );
+        void train( int nb_iterations, int interval = 0 );
+
+        // PRINT FUNCTIONS
+        void print_points( std::string pathToFile );
+        void print_background( std::string pathToFile, std::string class1BG = "lightblue", std::string class2BG = "pink" );
+        void print_MSE( std::string pathToFile, bool print_index = true );
 };
 
 #endif
