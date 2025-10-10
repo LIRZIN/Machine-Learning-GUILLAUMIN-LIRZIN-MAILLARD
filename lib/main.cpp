@@ -2,15 +2,16 @@
 
 int main()
 {
-    ExempleRosenblatt er( 200, 3, -1.0, 0.7 );
+    srand( time(0) );
+    ExempleRosenblatt er( 200, 3, -1.0, 0.7, 0.0001 );
 
     // INITIALIZATION
-    er.populate_points_random( 0.0f, 1.0f );
-    er.generate_weights();
+    er.populate_points_random();
     er.init_classify();
 
     // MODEL CREATION
-
+    er.generate_weights();
 
     // MODEL TRAINING USING ROSENBLATT'S RULE
+    er.train(100000, 100);
 }

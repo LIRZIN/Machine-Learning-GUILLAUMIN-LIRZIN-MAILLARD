@@ -12,10 +12,12 @@ void ExempleRosenblatt::populate_points_random( float begin_range, float end_ran
 
 void ExempleRosenblatt::generate_weights()
 {
+    weights = Eigen::VectorXd(nb_weights);
+
     for( int i = 0; i < nb_weights; i++ )
     {
         float weight = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-        weights.push_back( weight * 2.0 - 1.0 );
+        weights[i] = weight * 2.0 - 1.0;
     }
 }
 
@@ -40,5 +42,40 @@ void ExempleRosenblatt::init_classify( std::string class1Color, std::string clas
 
         colors.push_back( color );
         class_values.push_back( class_value );
+    }
+}
+
+float ExempleRosenblatt::predict( Eigen::VectorXd& X_k_with_one )
+{
+    Eigen::MatrixXd X_prime = X_k_with_one;
+    Eigen::MatrixXd W_prime = weights.transpose();
+    Eigen::MatrixXd result = W_prime * X_prime;
+    return result(0,0) < 0 ? -1 : 1;
+}
+
+void ExempleRosenblatt::train( int nb_iterations, int MSE_interval )
+{
+    if( MSE_interval > 0 )
+    {
+        MSEs.resize(0);
+    }
+
+    float MSE = 0.0;
+
+    for( int i = 0; i < nb_iterations; i++ )
+    {
+        int k = rand()%nb_points;
+        Eigen::VectorXd X_k_with_one(3);
+        X_k_with_one[0] = 1;
+        for( int j = 0; j < 2; j++ ) { X_k_with_one[j+1] = points[k][j]; }
+        float Y_k = class_values[k];
+        float g_X_k = predict(X_k_with_one);
+        weights = weights + alpha * ( Y_k - g_X_k ) * X_k_with_one;
+        MSE += ( Y_k - g_X_k ) * ( Y_k - g_X_k );
+        if( MSE_interval > 0 && (i+1)%MSE_interval == 0 )
+        {
+            MSEs.push_back( MSE/static_cast<float>(MSE_interval) );
+            MSE = 0;
+        }
     }
 }

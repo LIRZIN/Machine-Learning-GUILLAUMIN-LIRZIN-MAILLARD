@@ -3,7 +3,7 @@ OFILES = Color.o Point.o exemple_Rosenblatt.o
 PATH_SRC = .
 
 run : build
-	# ./main
+	./main
 	
 build : $(OFILES) main.o 
 	g++ -o main *.o $(FLAGS) 

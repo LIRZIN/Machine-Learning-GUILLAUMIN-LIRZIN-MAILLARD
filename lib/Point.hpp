@@ -18,6 +18,8 @@ class Point
         float getX() { return x; }
         float getY() { return y; }
 
+        float operator[]( int index ) { return (index==0)?(x):(y); }
+
         void generate_random( float begin_range, float end_range, bool is_whole );
 };
 
