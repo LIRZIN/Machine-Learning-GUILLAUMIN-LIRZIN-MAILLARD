@@ -1,7 +1,15 @@
-#include "exemple_Rosenblatt.hpp"
+//#include "exemple_Rosenblatt.hpp"
+#include "LinearModel.hpp"
+//#include "MultiLevelPerceptron.hpp"
 
 int main()
 {
+    LinearModel lm(2);
+    for( int i = 0; i < 10; i++ )
+        lm.addElement( 3, 0.5, 0.5, 1.0 );
+    lm.printElements();
+    lm.train( 10000, 0.001 );
+    /*
     srand( time(0) );
     ExempleRosenblatt er( 200, 3, -1.0, 0.7, 0.0001 );
 
@@ -19,4 +27,5 @@ int main()
     er.print_points("points.txt");
     er.print_background("bg.txt");
     er.print_MSE("MSE.txt");
+    */
 }
