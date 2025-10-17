@@ -7,9 +7,34 @@ int main()
     srand( time(0) );
 
     MultiLevelPerceptron mlp(2, 1);
-    for( int i = 0; i < 10; i++ )
-        mlp.addElement( 3, 0.5, 0.5, 1.0 );
-    mlp.printElements();
+
+    for( int i = 0; i < 100; i++ )
+    {
+        double x1 = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
+        double x2 = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
+        double y = ( x2 >= -1.0*x1 + 0.7 ) ? 1.0 : -1.0;
+        mlp.addElement( 3, x1, x2, y );
+    }
+    
+    mlp.train( 10000, 0.001 );
+
+    double success = 0.0;
+
+    for( int i = 0; i < 100; i++ )
+    {
+        double x1 = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
+        double x2 = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
+        double y = ( x2 >= -1.0*x1 + 0.7 ) ? 1.0 : -1.0;
+
+        double res = mlp.predict( x1, x2 );
+
+        if( res * y > 0 )
+        {
+            success += 1.0;
+        }
+    }
+
+    std::cout << "success rate : " << success << "%\n";
     /*
     LinearModel lm(2);
     for( int i = 0; i < 10; i++ )
