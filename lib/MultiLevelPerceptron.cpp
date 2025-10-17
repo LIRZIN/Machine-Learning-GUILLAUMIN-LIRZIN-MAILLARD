@@ -1,1 +1,197 @@
 #include "MultiLevelPerceptron.hpp"
+
+void MultiLevelPerceptron::init_matrices()
+{
+    input = Eigen::MatrixXd( nb_neurons_in_input_layer+1, 1 );
+    output = Eigen::VectorXd( 1 );
+
+    if( nb_hidden_layers == 0 )
+    {
+        input_weights = Eigen::MatrixXd( nb_neurons_in_input_layer+1, nb_neurons_in_output_layer );
+    }
+    else 
+    {
+        input_weights = Eigen::MatrixXd( nb_neurons_in_input_layer+1, nb_neurons_in_hidden_layer );
+        hidden_weights = Eigen::MatrixXd( nb_neurons_in_hidden_layer+1, nb_neurons_in_hidden_layer*(nb_hidden_layers-1) + nb_neurons_in_output_layer );
+
+        for( int i = 0; i < hidden_weights.rows(); i++ )
+        {
+            for( int j = 0; j < hidden_weights.cols(); j++ )
+            {
+                float weight = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+                hidden_weights(i, j) = weight * 2.0 - 1.0;
+            }
+        }
+    }
+    
+    for( int i = 0; i < input_weights.rows(); i++ )
+    {
+        for( int j = 0; j < input_weights.cols(); j++ )
+        {
+            float weight = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+            input_weights(i, j) = weight * 2.0 - 1.0;
+        }
+    }
+}
+
+void MultiLevelPerceptron::addElement( int count, ... )
+{
+    static bool first_time = true;
+
+    if( count != nb_neurons_in_input_layer+nb_neurons_in_output_layer )
+    {
+        std::cout << "Could not add element : invalid number of arguments. " << count << " given, " << nb_neurons_in_input_layer+nb_neurons_in_output_layer << " needed." << std::endl;
+        return; 
+    }
+
+    va_list args;
+    va_start( args, count );
+    Eigen::VectorXd new_input( nb_neurons_in_input_layer+1 );
+    Eigen::VectorXd new_output( nb_neurons_in_output_layer );
+    
+    new_input[0] = 1;
+
+    for( int i = 1; i < nb_neurons_in_input_layer+1; i++ )
+    {
+        new_input[i] = va_arg( args, double );
+    }
+    for( int i = 0; i < nb_neurons_in_output_layer; i++ )
+    {
+        new_output[i] = va_arg( args, double );
+    }
+
+    if( first_time )
+    {
+        input.col( 0 ) = new_input;
+        output.col( 0 ) = new_output;
+        nb_elements = 1;
+        first_time = false;
+    }
+    else 
+    {
+        input.conservativeResize( input.rows(), input.cols()+1 );
+        input.col( input.cols()-1 ) = new_input;
+
+        output.conservativeResize( output.rows(), output.cols()+1 );
+        output.col( output.cols()-1 ) = new_output;
+
+        nb_elements++;
+    }
+
+    va_end( args ); 
+}
+
+void MultiLevelPerceptron::printElements()
+{
+    std::cout << "X = \n" << input << std::endl << std::endl;
+    std::cout << "Y = \n" << output << std::endl << std::endl;
+    std::cout << "W[input] = \n" << input_weights << std::endl << std::endl;
+    std::cout << "W[hidden] = \n" << hidden_weights << std::endl << std::endl;
+}
+
+Eigen::VectorXd MultiLevelPerceptron::getWeights( int layer, int neuron )
+{
+    if( layer < 1 && layer >= nb_hidden_layers + 2 )
+    {
+        std::cout << "invalid layer index. " << layer << " is not between 1 and " << nb_hidden_layers + 1 << "." << std::endl;
+        return Eigen::Vector2d();
+    }
+
+    if( layer == 1 )
+    {
+        if( neuron < 0 && neuron >= input_weights.cols() )
+        {
+            std::cout << "invalid neuron index for layer " << layer << ". " << neuron << " is not between 0 and " << input_weights.cols()-1 << "." << std::endl;
+            return Eigen::Vector2d();
+        }
+
+        return input_weights.col( neuron );
+    }
+    if( layer == nb_hidden_layers + 1 )
+    {
+        if( neuron < 0 && neuron >= nb_neurons_in_output_layer )
+        {
+            std::cout << "invalid neuron index for the last layer. " << neuron << " is not between 0 and " << nb_neurons_in_output_layer-1 << "." << std::endl;
+            return Eigen::Vector2d();
+        }
+
+        return hidden_weights.col( hidden_weights.cols() - nb_neurons_in_output_layer + neuron );
+    }
+
+    if( neuron < 0 && neuron >= nb_neurons_in_hidden_layer )
+    {
+        std::cout << "invalid neuron index for the hidden layer" << layer-1 << ". " << neuron << " is not between 0 and " << nb_neurons_in_hidden_layer-1 << "." << std::endl;
+        return Eigen::Vector2d();
+    }
+
+    return hidden_weights.col( (layer-2)*nb_neurons_in_hidden_layer + neuron );
+}
+
+void MultiLevelPerceptron::setWeights( int layer, int neuron, Eigen::VectorXd& weights )
+{
+    if( layer < 1 && layer >= nb_hidden_layers + 2 )
+    {
+        std::cout << "invalid layer index. " << layer << " is not between 1 and " << nb_hidden_layers + 1 << "." << std::endl;
+        return;
+    }
+
+    if( layer == 1 )
+    {
+        if( neuron < 0 && neuron >= input_weights.cols() )
+        {
+            std::cout << "invalid neuron index for layer " << layer << ". " << neuron << " is not between 0 and " << input_weights.cols()-1 << "." << std::endl;
+            return;
+        }
+
+        input_weights.col( neuron ) = weights;
+    }
+    if( layer == nb_hidden_layers + 1 )
+    {
+        if( neuron < 0 && neuron >= nb_neurons_in_output_layer )
+        {
+            std::cout << "invalid neuron index for the last layer. " << neuron << " is not between 0 and " << nb_neurons_in_output_layer-1 << "." << std::endl;
+            return;
+        }
+
+        hidden_weights.col( hidden_weights.cols() - nb_neurons_in_output_layer + neuron ) = weights;
+    }
+
+    if( neuron < 0 && neuron >= nb_neurons_in_hidden_layer )
+    {
+        std::cout << "invalid neuron index for the hidden layer" << layer-1 << ". " << neuron << " is not between 0 and " << nb_neurons_in_hidden_layer-1 << "." << std::endl;
+        return;
+    }
+
+    hidden_weights.col( (layer-2)*nb_neurons_in_hidden_layer + neuron ) = weights;
+}
+
+void MultiLevelPerceptron::compute_neuron_values( Eigen::VectorXd& input_k, Eigen::MatrixXd& computed_hidden_neurons, Eigen::VectorXd& computed_output_neurons )
+{
+
+}
+
+void MultiLevelPerceptron::update_weights( Eigen::VectorXd& output_k, Eigen::MatrixXd& computed_hidden_neurons, Eigen::VectorXd& computed_output_neurons )
+{
+
+}
+
+void MultiLevelPerceptron::train( int nb_iterations, double alpha )
+{
+    Eigen::MatrixXd computed_hidden_neurons;
+    if( nb_hidden_layers > 0 )
+    {
+        computed_hidden_neurons = Eigen::MatrixXd( nb_neurons_in_output_layer, nb_hidden_layers );
+    }
+    Eigen::VectorXd computed_output_neurons( nb_neurons_in_output_layer );
+
+    for( int i = 0; i < nb_iterations; i++ )
+    {
+        int k = rand()%nb_elements;
+
+        Eigen::VectorXd input_k = input.col(k);
+        Eigen::VectorXd ouput_k = output.col(k);
+
+        compute_neuron_values( input_k, computed_hidden_neurons, computed_output_neurons );
+        update_weights( ouput_k, computed_hidden_neurons, computed_output_neurons );
+    }
+}

@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <cstdarg>
-#include <vector>
+#include <math.h>
 #include <Eigen/Dense>
 
 class LinearModel
@@ -25,7 +25,7 @@ class LinearModel
     */
 
     public : 
-        LinearModel( int init_nb_components_of_element );
+        LinearModel( int init_nb_components_of_element = 2 );
 
         void addElement( int count, ... );
         void printElements();

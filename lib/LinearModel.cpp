@@ -70,7 +70,7 @@ void LinearModel::printElements()
 double LinearModel::predict( Eigen::VectorXd& X_k_with_one )
 {
     Eigen::MatrixXd result = weights.transpose() * X_k_with_one;
-    return result(0,0) < 0 ? -1.0 : 1.0;
+    return tanh( result(0,0) );//result(0,0) < 0 ? -1.0 : 1.0;
 }
 
 void LinearModel::train( int nb_iterations, double alpha )
