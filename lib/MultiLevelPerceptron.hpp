@@ -29,9 +29,10 @@ class MultiLevelPerceptron
 
     void init_matrices();
 
-    // In Weights : weights that are used to compute a neuron's value
+    // In Weights : weights that are used to compute a neuron's value 
     // Out Weights : weights that are applied to a neuron to compute the next layer's neurons
     Eigen::VectorXd getInWeights( int layer, int neuron );
+    void setInWeights( int layer, int neuron, Eigen::VectorXd& weights );
     Eigen::VectorXd getOutWeights( int layer, int neuron );
     void setOutWeights( int layer, int neuron, Eigen::VectorXd& weights );
 
@@ -61,7 +62,7 @@ class MultiLevelPerceptron
         void printElements();
 
         void train( int nb_iterations, double alpha );
-        double predict( double x1, double x2 ); // test method
+        Eigen::VectorXd predict( double x1, double x2 ); // test method
 };
 
 #endif

@@ -6,14 +6,15 @@ int main()
 {
     srand( time(0) );
 
-    MultiLevelPerceptron mlp(2, 1);
+    MultiLevelPerceptron mlp(2, 3, 2);
 
     for( int i = 0; i < 100; i++ )
     {
         double x1 = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
         double x2 = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
-        double y = ( x2 >= -1.0*x1 + 0.7 ) ? 1.0 : -1.0;
-        mlp.addElement( 3, x1, x2, y );
+        double y1 = ( x2 >= -1.0*x1 + 0.7 ) ? 1.0 : -1.0;
+        double y2 = ( x2 >= -1.0*x1 + 0.7 ) ? -1.0 : 1.0;
+        mlp.addElement( 4, x1, x2, y1, y2 );
     }
     
     mlp.train( 10000, 0.001 );
@@ -24,11 +25,12 @@ int main()
     {
         double x1 = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
         double x2 = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
-        double y = ( x2 >= -1.0*x1 + 0.7 ) ? 1.0 : -1.0;
+        double y1 = ( x2 >= -1.0*x1 + 0.7 ) ? 1.0 : -1.0;
+        double y2 = ( x2 >= -1.0*x1 + 0.7 ) ? -1.0 : 1.0;
 
-        double res = mlp.predict( x1, x2 );
+        Eigen::VectorXd res = mlp.predict( x1, x2 );
 
-        if( res * y > 0 )
+        if( ( y1 < y2 && res[0] < res[1] ) || ( y1 > y2 && res[0] > res[1] ) )
         {
             success += 1.0;
         }
