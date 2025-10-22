@@ -4,9 +4,7 @@
 
 int main()
 {
-    srand( time(0) );
-
-    MultiLevelPerceptron mlp(2, 3, 2);
+    MultiLevelPerceptron mlp(2, 2, 2);
 
     for( int i = 0; i < 100; i++ )
     {
@@ -17,7 +15,7 @@ int main()
         mlp.addElement( 4, x1, x2, y1, y2 );
     }
     
-    mlp.train( 10000, 0.001 );
+    mlp.train( 100000, 0.0001 );
 
     double success = 0.0;
 
@@ -28,9 +26,12 @@ int main()
         double y1 = ( x2 >= -1.0*x1 + 0.7 ) ? 1.0 : -1.0;
         double y2 = ( x2 >= -1.0*x1 + 0.7 ) ? -1.0 : 1.0;
 
-        Eigen::VectorXd res = mlp.predict( x1, x2 );
+        mlp.generatePrediction( 2, x1, x2 );
 
-        if( ( y1 < y2 && res[0] < res[1] ) || ( y1 > y2 && res[0] > res[1] ) )
+        double res0 = mlp.getPrediction(0);
+        double res1 = mlp.getPrediction(1);
+
+        if( ( y1 < y2 && res0 < res1 ) || ( y1 > y2 && res0 > res1 ) )
         {
             success += 1.0;
         }
