@@ -39,8 +39,11 @@ MultiLevelPerceptron.o : $(PATH_SRC)/MultiLevelPerceptron.cpp $(PATH_SRC)/MultiL
 main.o : main.cpp
 	g++ -c $< $(FLAGS)
 
+lib.so : 
+	g++ -std=c++17 -fPIC -shared MultiLevelPerceptron.cpp MultiLevelPerceptron_c_wrapper.cpp $(FLAGS) -o libMLP.so
+
 # valgrind : build 
 # 	valgrind --track-origins=yes ./main
 
 clean: 
-	rm -f *.o main points.txt bg.txt MSE.txt 
+	rm -f *.o *.so main points.txt bg.txt MSE.txt 

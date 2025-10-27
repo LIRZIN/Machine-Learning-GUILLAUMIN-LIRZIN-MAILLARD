@@ -200,33 +200,38 @@ void MultiLevelPerceptron::setOutWeights( int layer, int neuron, Eigen::VectorXd
     }
 }
 
+double MultiLevelPerceptron::activation_function( double value )
+{
+    return (is_used_for_classification)?tanh( value ):value;
+}
+
 void MultiLevelPerceptron::compute_neuron_values( Eigen::VectorXd& input_k, Eigen::MatrixXd& computed_hidden_neurons, Eigen::VectorXd& computed_output_neurons )
 {
     if( nb_hidden_layers == 0 )
     {
         for( int i = 0; i < nb_neurons_in_output_layer; i++ )
         {
-            computed_output_neurons[i] = tanh( getInWeights( 1, i ).transpose() * input_k );
+            computed_output_neurons[i] = activation_function( getInWeights( 1, i ).transpose() * input_k );
         }
     }
     else 
     {
         for( int i = 0; i < nb_neurons_in_hidden_layer; i++ )
         {
-            computed_hidden_neurons(i+1, 0) = tanh( getInWeights( 1, i ).transpose() * input_k );
+            computed_hidden_neurons(i+1, 0) = activation_function( getInWeights( 1, i ).transpose() * input_k );
         }
 
         for( int i = 1; i < nb_hidden_layers; i++ )
         {
             for( int j = 0; j < nb_neurons_in_hidden_layer; j++ )
             {
-                computed_hidden_neurons(j+1, i) = tanh( getInWeights( i+1, j ).transpose() * computed_hidden_neurons.col(i-1) );
+                computed_hidden_neurons(j+1, i) = activation_function( getInWeights( i+1, j ).transpose() * computed_hidden_neurons.col(i-1) );
             }
         }
 
         for( int i = 0; i < nb_neurons_in_output_layer; i++ )
         {
-            computed_output_neurons[i] = tanh( getInWeights( nb_hidden_layers+1, i ).transpose() * computed_hidden_neurons.col(nb_hidden_layers-1) );
+            computed_output_neurons[i] = activation_function( getInWeights( nb_hidden_layers+1, i ).transpose() * computed_hidden_neurons.col(nb_hidden_layers-1) );
         }
     }
 }
@@ -328,6 +333,47 @@ void MultiLevelPerceptron::addElement( int count, ... )
     va_end( args ); 
 }
 
+void MultiLevelPerceptron::addElementArray( int count, double* array )
+{
+    static bool first_time = true;
+
+    if( count != nb_neurons_in_input_layer+nb_neurons_in_output_layer )
+    {
+        std::cout << "Could not add element : invalid number of arguments. " << count << " given, " << nb_neurons_in_input_layer+nb_neurons_in_output_layer << " needed." << std::endl;
+        return; 
+    }
+
+    Eigen::VectorXd new_input( nb_neurons_in_input_layer+1 );
+    Eigen::VectorXd new_output( nb_neurons_in_output_layer );
+    
+    new_input[0] = 1;
+    int index = 0;
+
+    for( int i = 1; i < nb_neurons_in_input_layer+1; i++ )
+    {
+        new_input[i] = array[index++];
+    }
+    for( int i = 0; i < nb_neurons_in_output_layer; i++ )
+    {
+        new_output[i] = array[index++];
+    }
+
+    if( first_time )
+    {
+        input.col( 0 ) = new_input;
+        output.col( 0 ) = new_output;
+        first_time = false;
+    }
+    else 
+    {
+        input.conservativeResize( input.rows(), input.cols()+1 );
+        input.col( input.cols()-1 ) = new_input;
+
+        output.conservativeResize( output.rows(), output.cols()+1 );
+        output.col( output.cols()-1 ) = new_output;
+    }
+}
+
 void MultiLevelPerceptron::printElements()
 {
     std::cout << "X = \n" << input << std::endl << std::endl;
@@ -403,6 +449,36 @@ void MultiLevelPerceptron::generatePrediction( int count, ... )
     for( int i = 1; i < nb_neurons_in_input_layer+1; i++ )
     {
         inputToPredictFrom[i] = va_arg( args, double );
+    }
+
+    Eigen::MatrixXd computed_hidden_neurons;
+    if( nb_hidden_layers > 0 )
+    {
+        computed_hidden_neurons = Eigen::MatrixXd( nb_neurons_in_hidden_layer+1, nb_hidden_layers );
+
+        for( int i = 0; i < nb_hidden_layers; i++ )
+        {
+            computed_hidden_neurons(0, i) = 1.0;
+        }
+    }
+
+    compute_neuron_values( inputToPredictFrom, computed_hidden_neurons, predictedOutput );
+}
+
+void MultiLevelPerceptron::generatePredictionArray( int count, double* array )
+{
+    if( count != nb_neurons_in_input_layer )
+    {
+        std::cout << "Could not add element : invalid number of arguments. " << count << " given, " << nb_neurons_in_input_layer << " needed." << std::endl;
+        return; 
+    }
+    Eigen::VectorXd inputToPredictFrom( nb_neurons_in_input_layer+1 );
+    
+    inputToPredictFrom[0] = 1;
+
+    for( int i = 1; i < count+1; i++ )
+    {
+        inputToPredictFrom[i] = array[i-1];
     }
 
     Eigen::MatrixXd computed_hidden_neurons;

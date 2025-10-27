@@ -8,6 +8,8 @@
 
 class MultiLevelPerceptron
 {
+    // used for classification or regression
+    const bool is_used_for_classification;
     // Number of neurons on the input layer, doesn't include the constant 1 neuron added internally
     const int nb_neurons_in_input_layer; 
     // Number of hidden layers in the neural network
@@ -63,6 +65,8 @@ class MultiLevelPerceptron
     Eigen::VectorXd getOutWeights( int layer, int neuron );
     void setOutWeights( int layer, int neuron, Eigen::VectorXd& weights );
 
+    double activation_function( double value );
+
     /* Computes the value of every neuron in the network from a certain input 'input_k' and the weights stored in the *_weights matrices
      * The values of the neurons in hidden layers are stored in 'computed_hidden_neurons' whereas the values of the neurons of the output layer are stored in 'computed_output_neurons'
      * The computed_*_neurons matrices are initialized with the correct size before calling the method in train(...)
@@ -76,20 +80,20 @@ class MultiLevelPerceptron
 
     public : 
         // Contructors
-        MultiLevelPerceptron( int nb_neurons_in_input_layer, int nb_neurons_in_output_layer ) 
-        : nb_neurons_in_input_layer(nb_neurons_in_input_layer), nb_hidden_layers(0), nb_neurons_in_hidden_layer(0), nb_neurons_in_output_layer(nb_neurons_in_output_layer)
+        MultiLevelPerceptron( bool is_used_for_classification, int nb_neurons_in_input_layer, int nb_neurons_in_output_layer ) 
+        : is_used_for_classification(is_used_for_classification), nb_neurons_in_input_layer(nb_neurons_in_input_layer), nb_hidden_layers(0), nb_neurons_in_hidden_layer(0), nb_neurons_in_output_layer(nb_neurons_in_output_layer)
         {
             init_matrices();
         }
 
-        MultiLevelPerceptron( int nb_neurons_in_input_layer, int nb_layers, int nb_neurons_in_output_layer ) 
-        : nb_neurons_in_input_layer(nb_neurons_in_input_layer), nb_hidden_layers(nb_layers-1), nb_neurons_in_hidden_layer(nb_neurons_in_input_layer), nb_neurons_in_output_layer(nb_neurons_in_output_layer)
+        MultiLevelPerceptron( bool is_used_for_classification, int nb_neurons_in_input_layer, int nb_layers, int nb_neurons_in_output_layer ) 
+        : is_used_for_classification(is_used_for_classification), nb_neurons_in_input_layer(nb_neurons_in_input_layer), nb_hidden_layers(nb_layers-1), nb_neurons_in_hidden_layer(nb_neurons_in_input_layer), nb_neurons_in_output_layer(nb_neurons_in_output_layer)
         {
             init_matrices();
         }
 
-        MultiLevelPerceptron( int nb_neurons_in_input_layer, int nb_layers, int nb_neurons_in_hidden_layer, int nb_neurons_in_output_layer ) 
-        : nb_neurons_in_input_layer(nb_neurons_in_input_layer), nb_hidden_layers(nb_layers-1), nb_neurons_in_hidden_layer(nb_neurons_in_hidden_layer), nb_neurons_in_output_layer(nb_neurons_in_output_layer)
+        MultiLevelPerceptron( bool is_used_for_classification, int nb_neurons_in_input_layer, int nb_layers, int nb_neurons_in_hidden_layer, int nb_neurons_in_output_layer ) 
+        : is_used_for_classification(is_used_for_classification), nb_neurons_in_input_layer(nb_neurons_in_input_layer), nb_hidden_layers(nb_layers-1), nb_neurons_in_hidden_layer(nb_neurons_in_hidden_layer), nb_neurons_in_output_layer(nb_neurons_in_output_layer)
         {
             init_matrices();
         }
@@ -101,6 +105,7 @@ class MultiLevelPerceptron
          * AddElement( [X.size()+Y.size()], X[0], X[1], ..., X[X.size()-1], Y[0], Y[1], ..., Y[Y.size()-1] );
         */
         void addElement( int count, ... );
+        void addElementArray( int count, double* array );
         /* Prints the content of the matrices
          * used purely for debugging
         */
@@ -120,6 +125,7 @@ class MultiLevelPerceptron
          * generatePrediction( X.size(), X[0], X[1], ..., X[X.size()-1] );
         */
         void generatePrediction( int count, ... );
+        void generatePredictionArray( int count, double* array );
         /* Returns the element at the index 'index' in the vector 'predictedOutput'
         */
         double getPrediction( int index );
