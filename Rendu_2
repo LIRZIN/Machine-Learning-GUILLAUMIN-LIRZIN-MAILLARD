@@ -1,0 +1,11 @@
+Le code peut se trouver au lien github suivant : 
+https://github.com/LIRZIN/Machine-Learning-LIRZIN-MAILLARD
+
+Les tests sont directement effectués dans le notebook situé dans tests/
+
+A l'éxecution dans google colab, vous devez importer le fichier libMLP.so situé dans tests/
+
+libMLP.so est une librairie construite avec la cible lib.so de lib/Makefile et utilise le code trouvé dans les fichiers : 
+    - lib/MultiLevelPerceptron.cpp
+    - lib/MultiLevelPerceptron.hpp
+    - lib/MultiLevelPerceptron_c_wrapper.cpp
