@@ -1,5 +1,5 @@
 Le code peut se trouvé au lien github suivant : 
-https://github.com/LIRZIN/Machine-Learning-LIRZIN-MAILLARD
+https://github.com/LIRZIN/Machine-Learning-GUILLAUMIN-LIRZIN-MAILLARD
 
 Les tests sont directement effectués dans le notebook situé dans tests/
 
