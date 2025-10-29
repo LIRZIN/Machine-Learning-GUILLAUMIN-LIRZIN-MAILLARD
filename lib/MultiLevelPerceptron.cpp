@@ -420,7 +420,7 @@ void MultiLevelPerceptron::train( int nb_iterations, double alpha, int MSE_inter
             Eigen::VectorXd delta_output = computed_output_neurons - output_k;
             for( int j = 0; j < nb_neurons_in_output_layer; j++ )
             {
-                tmpMSE += pow( delta_output[i], 2.0 );
+                tmpMSE += pow( delta_output[j], 2.0 );
             }
             
             if( i%MSE_interval == 0 )

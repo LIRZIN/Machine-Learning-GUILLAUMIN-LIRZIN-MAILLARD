@@ -15,7 +15,7 @@ int main()
         mlp.addElement( 4, x1, x2, y1, y2 );
     }
     
-    mlp.train( 100000, 0.0001 );
+    mlp.train( 100000, 0.001 );
 
     double success = 0.0;
 
