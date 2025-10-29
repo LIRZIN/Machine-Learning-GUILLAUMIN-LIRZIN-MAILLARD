@@ -1,10 +1,11 @@
 //#include "exemple_Rosenblatt.hpp"
 //#include "LinearModel.hpp"
-#include "MultiLevelPerceptron.hpp"
+#include "MultiLayerPerceptron.hpp"
 
 int main()
 {
-    MultiLevelPerceptron mlp(2, 2, 2);
+    int layers[2] = { 2, 2 };
+    MultiLayerPerceptron mlp(2, layers);
 
     for( int i = 0; i < 100; i++ )
     {
@@ -15,7 +16,7 @@ int main()
         mlp.addElement( 4, x1, x2, y1, y2 );
     }
     
-    mlp.train( 100000, 0.001 );
+    mlp.quickTrain();
 
     double success = 0.0;
 
@@ -26,7 +27,7 @@ int main()
         double y1 = ( x2 >= -1.0*x1 + 0.7 ) ? 1.0 : -1.0;
         double y2 = ( x2 >= -1.0*x1 + 0.7 ) ? -1.0 : 1.0;
 
-        mlp.generatePrediction( 2, x1, x2 );
+        mlp.generatePrediction( true, 2, x1, x2 );
 
         double res0 = mlp.getPrediction(0);
         double res1 = mlp.getPrediction(1);

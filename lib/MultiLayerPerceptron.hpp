@@ -6,18 +6,13 @@
 #include <math.h>
 #include <Eigen/Dense>
 
-class MultiLevelPerceptron
+#define nb_neurons_in_input_layer (nb_neurons_in_layer[0])
+#define nb_neurons_in_output_layer (nb_neurons_in_layer[nb_layers-1])
+
+class MultiLayerPerceptron
 {
-    // used for classification or regression
-    const bool is_used_for_classification;
-    // Number of neurons on the input layer, doesn't include the constant 1 neuron added internally
-    const int nb_neurons_in_input_layer; 
-    // Number of hidden layers in the neural network
-    const int nb_hidden_layers;
-    // Number of neurons on the hidden layer, doesn't include the constant 1 neuron added internally
-    const int nb_neurons_in_hidden_layer; 
-    // Number of neurons on the output layer
-    const int nb_neurons_in_output_layer;
+    int* nb_neurons_in_layer;
+    int nb_layers;
 
     // Contains the input data to train the network
     // It has [nb_neurons_in_input_layer+1] rows and [number_of_elements] columns
@@ -28,11 +23,10 @@ class MultiLevelPerceptron
     Eigen::MatrixXd output;
     // Contains the weights applied to the input data when computing the neurons' value in the second layer of the neural network
     // It has [nb_neurons_in_input_layer+1] rows and [number_of_neurons_in_the_next_layer] columns
-    Eigen::MatrixXd input_weights;
     // Contains the weights applied to a hidden layer's neurons when computing the neurons' value in the next layer of the neural network
     // It has [nb_neurons_in_hidden_layer+1] rows and [nb_neurons_in_hidden_layer*nb_hidden_layers+nb_neurons_in_output_layer] columns
     // If the network only contains 2 layers ( input and output layers ), this matrix is left unused
-    Eigen::MatrixXd hidden_weights;
+    Eigen::MatrixXd* weights;
 
     Eigen::VectorXd MSE_values;
 
@@ -65,37 +59,39 @@ class MultiLevelPerceptron
     Eigen::VectorXd getOutWeights( int layer, int neuron );
     void setOutWeights( int layer, int neuron, Eigen::VectorXd& weights );
 
-    double activation_function( double value );
+    double activation_function( bool is_used_for_classification, double value );
 
     /* Computes the value of every neuron in the network from a certain input 'input_k' and the weights stored in the *_weights matrices
      * The values of the neurons in hidden layers are stored in 'computed_hidden_neurons' whereas the values of the neurons of the output layer are stored in 'computed_output_neurons'
      * The computed_*_neurons matrices are initialized with the correct size before calling the method in train(...)
     */
-    void compute_neuron_values( Eigen::VectorXd& input_k, Eigen::MatrixXd& computed_hidden_neurons, Eigen::VectorXd& computed_output_neurons );
+    void compute_neuron_values( Eigen::VectorXd* neurons, bool is_used_for_classification );
     /* Corrects every weight of the neural network using the difference between the predicted output 'computed_output_neurons' and the correct output 'output_k' for the input 'input_k'
      * The computed_*_neurons matrices must be filled by a call to compute_neuron_values( 'input_k', ... ) 
      * alpha dictates the degree of change undergone by the weights every time they are updated
     */
-    void update_weights( Eigen::VectorXd& input_k, Eigen::VectorXd& output_k, Eigen::MatrixXd& computed_hidden_neurons, Eigen::VectorXd& computed_output_neurons, double alpha  );
+    void update_weights( Eigen::VectorXd* neurons, Eigen::VectorXd& output_k, double alpha, bool is_used_for_classification );
 
     public : 
-        // Contructors
-        MultiLevelPerceptron( bool is_used_for_classification, int nb_neurons_in_input_layer, int nb_neurons_in_output_layer ) 
-        : is_used_for_classification(is_used_for_classification), nb_neurons_in_input_layer(nb_neurons_in_input_layer), nb_hidden_layers(0), nb_neurons_in_hidden_layer(0), nb_neurons_in_output_layer(nb_neurons_in_output_layer)
+        MultiLayerPerceptron( int count, int* d )  
         {
+            if( count < 2 )
+            {
+                // exception
+            }
+
+            nb_layers = count;
+            nb_neurons_in_layer = new int[count];
+            for( int i = 0; i < nb_layers; i++ )
+                nb_neurons_in_layer[i] = d[i];
+
             init_matrices();
         }
 
-        MultiLevelPerceptron( bool is_used_for_classification, int nb_neurons_in_input_layer, int nb_layers, int nb_neurons_in_output_layer ) 
-        : is_used_for_classification(is_used_for_classification), nb_neurons_in_input_layer(nb_neurons_in_input_layer), nb_hidden_layers(nb_layers-1), nb_neurons_in_hidden_layer(nb_neurons_in_input_layer), nb_neurons_in_output_layer(nb_neurons_in_output_layer)
+        ~MultiLayerPerceptron()
         {
-            init_matrices();
-        }
-
-        MultiLevelPerceptron( bool is_used_for_classification, int nb_neurons_in_input_layer, int nb_layers, int nb_neurons_in_hidden_layer, int nb_neurons_in_output_layer ) 
-        : is_used_for_classification(is_used_for_classification), nb_neurons_in_input_layer(nb_neurons_in_input_layer), nb_hidden_layers(nb_layers-1), nb_neurons_in_hidden_layer(nb_neurons_in_hidden_layer), nb_neurons_in_output_layer(nb_neurons_in_output_layer)
-        {
-            init_matrices();
+            delete nb_neurons_in_layer;
+            delete weights;
         }
 
         /* Adds an element to the 'input' and 'output' matrices, which may be used to train the network
@@ -111,12 +107,14 @@ class MultiLevelPerceptron
         */
         void printElements();
 
+        void quickTrain();
+
         /* Trains the network for 'nb_iterations' iterations where an iteration consists of : 
          * 1) Choosing a random couple ( input[k], output[k] )
          * 2) Updating the weights of the network by calling compute_neuron_values(...) then update_weights(...)
          * If MSE_interval is greater than 0, the MSEvalues vector will get filled 
         */
-        void train( int nb_iterations, double alpha, int MSE_interval = 0 );
+        void train( int nb_iterations, double alpha, bool is_used_for_classification, int MSE_interval = 0 );
 
         /* Fills the member 'predictedOutput' by predicting the class in which the input given is
          * The first argument 'count' indicates the number of arguments that follows it
@@ -124,8 +122,8 @@ class MultiLevelPerceptron
          * Let X be an input. Then generatePrediction is called like : 
          * generatePrediction( X.size(), X[0], X[1], ..., X[X.size()-1] );
         */
-        void generatePrediction( int count, ... );
-        void generatePredictionArray( int count, double* array );
+        void generatePrediction( bool is_used_for_classification, int count, ... );
+        void generatePredictionArray( bool is_used_for_classification, int count, double* array );
         /* Returns the element at the index 'index' in the vector 'predictedOutput'
         */
         double getPrediction( int index );
