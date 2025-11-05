@@ -15,6 +15,15 @@ MultiLayerPerceptron.o : $(PATH_SRC)/MultiLayerPerceptron.cpp $(PATH_SRC)/MultiL
 main.o : main.cpp
 	g++ -c $< $(FLAGS)
 
+MLP : MLP.o mainMLP.o 
+	g++ -o mainMLP *.o $(FLAGS) 
+
+MLP.o : $(PATH_SRC)/MLP.cpp $(PATH_SRC)/MLP.hpp
+	g++ -c $< $(FLAGS)
+
+mainMLP.o : mainMLP.cpp
+	g++ -c $< $(FLAGS)
+
 lib.so : 
 	g++ -std=c++17 -fPIC -shared MultiLayerPerceptron.cpp MultiLayerPerceptron_c_wrapper.cpp $(FLAGS) -o libMLP.so
 
