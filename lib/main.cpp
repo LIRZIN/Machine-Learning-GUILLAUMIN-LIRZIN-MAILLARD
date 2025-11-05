@@ -16,7 +16,8 @@ int main()
         mlp.addElement( 4, x1, x2, y1, y2 );
     }
     
-    mlp.quickTrain();
+    mlp.train( 10000, 0.01, true );
+    //mlp.quickTrain();
 
     double success = 0.0;
 
@@ -31,6 +32,7 @@ int main()
 
         double res0 = mlp.getPrediction(0);
         double res1 = mlp.getPrediction(1);
+        std::cout << res0 << ", " << res1 << "||" << y1 << ", " << y2 << std::endl;
 
         if( ( y1 < y2 && res0 < res1 ) || ( y1 > y2 && res0 > res1 ) )
         {

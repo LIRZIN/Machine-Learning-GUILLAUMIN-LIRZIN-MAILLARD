@@ -32,6 +32,11 @@ Eigen::VectorXd MultiLayerPerceptron::getInWeights( int layer, int neuron )
         std::cout << "invalid layer index. " << layer << " is not between 1 and " << nb_layers << "." << std::endl;
         return Eigen::Vector2d();
     }
+    if( neuron < 0 || neuron >= nb_neurons_in_layer[layer] )
+    {
+        std::cout << "invalid neuron index. " << neuron << " is not between 0 and " << nb_neurons_in_layer[layer]-1 << "." << std::endl;
+        return Eigen::Vector2d();
+    }
 
     return weights[layer-1].col( neuron );
 }
@@ -41,6 +46,11 @@ void MultiLayerPerceptron::setInWeights( int layer, int neuron, Eigen::VectorXd&
     if( layer < 1 || layer > nb_layers )
     {
         std::cout << "invalid layer index. " << layer << " is not between 1 and " << nb_layers << "." << std::endl;
+        return;
+    }
+    if( neuron < 0 || neuron >= nb_neurons_in_layer[layer] )
+    {
+        std::cout << "invalid neuron index. " << neuron << " is not between 0 and " << nb_neurons_in_layer[layer]-1 << "." << std::endl;
         return;
     }
 
@@ -54,6 +64,11 @@ Eigen::VectorXd MultiLayerPerceptron::getOutWeights( int layer, int neuron )
         std::cout << "invalid layer index. " << layer << " is not between 0 and " << nb_layers - 2 << "." << std::endl;
         return Eigen::Vector2d();
     }
+    if( neuron < 0 || neuron >= nb_neurons_in_layer[layer]+1 )
+    {
+        std::cout << "invalid neuron index. " << neuron << " is not between 0 and " << nb_neurons_in_layer[layer] << "." << std::endl;
+        return Eigen::Vector2d();
+    }
 
     return weights[layer].row( neuron );
 }
@@ -63,6 +78,11 @@ void MultiLayerPerceptron::setOutWeights( int layer, int neuron, Eigen::VectorXd
     if( layer < 0 || layer > nb_layers - 2 )
     {
         std::cout << "invalid layer index. " << layer << " is not between 0 and " << nb_layers - 2 << "." << std::endl;
+        return;
+    }
+    if( neuron < 0 || neuron >= nb_neurons_in_layer[layer]+1 )
+    {
+        std::cout << "invalid neuron index. " << neuron << " is not between 0 and " << nb_neurons_in_layer[layer] << "." << std::endl;
         return;
     }
 
@@ -79,7 +99,7 @@ void MultiLayerPerceptron::compute_neuron_values( Eigen::VectorXd* neurons, bool
     for( int i = 1; i < nb_layers-1; i++ )
         for( int j = 0; j < nb_neurons_in_layer[i]; j++ )
         {
-            neurons[i][j] = tanh( getInWeights( i, j ).transpose() * neurons[i-1] );
+            neurons[i][j+1] = tanh( getInWeights( i, j ).transpose() * neurons[i-1] );
         }
     
     for( int i = 0; i < nb_neurons_in_output_layer; i++ )
@@ -91,26 +111,26 @@ void MultiLayerPerceptron::compute_neuron_values( Eigen::VectorXd* neurons, bool
 void MultiLayerPerceptron::update_weights( Eigen::VectorXd* neurons, Eigen::VectorXd& output_k, double alpha, bool is_used_for_classification )
 {
     Eigen::VectorXd* delta = new Eigen::VectorXd[nb_layers-1];
-    for( int i = 1; i < nb_layers-1; i++ )
-        delta[i-1] = Eigen::VectorXd( nb_neurons_in_layer[i] + 1); 
+    for( int i = 1; i < nb_layers; i++ )
+        delta[i-1] = Eigen::VectorXd( nb_neurons_in_layer[i] ); 
 
-    delta[nb_layers-2] = neurons[nb_layers-1] - output_k;
+    delta[nb_layers-2] = output_k - neurons[nb_layers-1];
     if( is_used_for_classification )
         for( int i = 0; i < nb_neurons_in_output_layer; i++ )
             delta[nb_layers-2][i] *= ( 1.0 - pow( neurons[nb_layers-1][i], 2.0 ) );
     
     for( int i = nb_layers-2; i > 0; i-- )
         for( int j = 0; j < nb_neurons_in_layer[i]; j++ )
-            delta[i-1][j] = ( 1.0 - pow( neurons[i-1][j], 2.0 ) ) * ( getOutWeights( i, j ).transpose() * delta[i] )(0, 0);
+            delta[i-1][j] = ( 1.0 - pow( neurons[i-1][j+1], 2.0 ) ) * ( getOutWeights( i, j ).transpose() * delta[i] )(0, 0);
     
     for( int i = nb_layers-2; i >= 0; i-- )
-        for( int j = 0; j < nb_neurons_in_layer[i-1]; j++ )
+        for( int j = 0; j <= nb_neurons_in_layer[i]; j++ )
         {
-            Eigen::VectorXd weight = getOutWeights( i, j ) - alpha * neurons[i][j]* delta[i+1];
+            Eigen::VectorXd weight = getOutWeights( i, j ) - alpha * neurons[i][j] * delta[i];
             setOutWeights( i, j, weight );
         }
 
-    delete delta;
+    delete[] delta;
 }
 
 void MultiLayerPerceptron::addElement( int count, ... )
@@ -130,7 +150,7 @@ void MultiLayerPerceptron::addElement( int count, ... )
     
     new_input[0] = 1;
 
-    for( int i = 1; i < nb_neurons_in_input_layer+1; i++ )
+    for( int i = 0; i < nb_neurons_in_input_layer+1; i++ )
     {
         new_input[i] = va_arg( args, double );
     }
@@ -221,7 +241,10 @@ void MultiLayerPerceptron::train( int nb_iterations, double alpha, bool is_used_
 {
     Eigen::VectorXd* neurons = new Eigen::VectorXd[nb_layers];
     for( int i = 0; i < nb_layers; i++ )
-        neurons[i] = Eigen::VectorXd( nb_neurons_in_layer[i] );
+     {
+        neurons[i] = Eigen::VectorXd( nb_neurons_in_layer[i] + ((i==(nb_layers-1))?0:1) );
+        neurons[i][0] = 1.0;
+     }
 
     int MSE_index = 0;
     double tmpMSE = 0.0;
@@ -255,7 +278,7 @@ void MultiLayerPerceptron::train( int nb_iterations, double alpha, bool is_used_
         }
     }
 
-    delete neurons;
+    delete[] neurons;
 }
 
 void MultiLayerPerceptron::generatePrediction( bool is_used_for_classification, int count, ... )
@@ -271,18 +294,20 @@ void MultiLayerPerceptron::generatePrediction( bool is_used_for_classification, 
     Eigen::VectorXd* neurons = new Eigen::VectorXd[nb_layers];
     for( int i = 0; i < nb_layers; i++ )
     {
-        neurons[i] = Eigen::VectorXd( nb_neurons_in_layer[i] + 1);
-        neurons[i][nb_neurons_in_layer[i]] = 1.0;
+        neurons[i] = Eigen::VectorXd( nb_neurons_in_layer[i] + ((i==(nb_layers-1))?0:1));
+        neurons[i][0] = 1.0;
     }
 
-    for( int i = 0; i < nb_neurons_in_input_layer; i++ )
+    for( int i = 1; i <= nb_neurons_in_input_layer; i++ )
         neurons[0][i] = va_arg( args, double );
+
+    va_end( args ); 
 
     compute_neuron_values( neurons, is_used_for_classification );
 
     predictedOutput = neurons[nb_layers-1];
-
-    delete neurons;
+    
+    delete[] neurons;
 }
 
 void MultiLayerPerceptron::generatePredictionArray( bool is_used_for_classification, int count, double* array )
@@ -295,7 +320,7 @@ void MultiLayerPerceptron::generatePredictionArray( bool is_used_for_classificat
     
     Eigen::VectorXd* neurons = new Eigen::VectorXd[nb_layers];
     for( int i = 0; i < nb_layers; i++ )
-        neurons[i] = Eigen::VectorXd( nb_neurons_in_layer[i] );
+        neurons[i] = Eigen::VectorXd( nb_neurons_in_layer[i] + 1 );
     
     neurons[0][0] = 1;
 
@@ -306,7 +331,7 @@ void MultiLayerPerceptron::generatePredictionArray( bool is_used_for_classificat
 
     predictedOutput = neurons[nb_layers-1];
 
-    delete neurons;
+    delete[] neurons;
 }
 
 double MultiLayerPerceptron::getPrediction( int index )
@@ -316,6 +341,6 @@ double MultiLayerPerceptron::getPrediction( int index )
         std::cout << "invalid neuron index. " << index << " is not between 0 and " << nb_neurons_in_output_layer-1 << "." << std::endl;
         return 999999.9;
     }
-
+    
     return predictedOutput[index];
 }

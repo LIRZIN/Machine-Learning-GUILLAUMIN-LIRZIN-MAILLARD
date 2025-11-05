@@ -90,8 +90,8 @@ class MultiLayerPerceptron
 
         ~MultiLayerPerceptron()
         {
-            delete nb_neurons_in_layer;
-            delete weights;
+            delete[] nb_neurons_in_layer;
+            delete[] weights;
         }
 
         /* Adds an element to the 'input' and 'output' matrices, which may be used to train the network
