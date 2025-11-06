@@ -43,6 +43,25 @@ class MLP
     void retropropagate( int k, bool is_used_for_classification, float alpha );
 
     public : 
+        MLP( int count, ... )  
+        {
+            if( count < 2 )
+            {
+                // exception
+            }
+
+            L = count;
+            d = new int[L];
+            va_list args;
+            va_start( args, count );
+
+            for( int l = 0; l < L; l++ )
+                d[l] = va_arg( args, double );
+
+            va_end( args ); 
+            init_matrices();
+        }
+
         MLP( int count, int* d_init )  
         {
             if( count < 2 )
@@ -79,6 +98,11 @@ class MLP
         void generatePrediction( bool is_used_for_classification, int count, ... );
         void generatePredictionArray( bool is_used_for_classification, int count, float* array );
         float getPrediction( int index );
+
+        float test( bool is_used_for_classification );
+
+        int getMSESize() { return nb_MSE; }
+        float MSE( int index ) { return _MSE[index]; }
 };
 
 #endif

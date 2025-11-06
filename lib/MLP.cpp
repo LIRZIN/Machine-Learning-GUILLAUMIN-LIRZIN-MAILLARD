@@ -7,16 +7,14 @@ void MLP::init_matrices()
     // Initialize the RNG
     srand( time(0) );
 
-    int nb_neurons = 0;
+    int nb_neurons = d[0]+1;
     int nb_weights = 0;
 
-    for( int l = 0; l < L-1; l++ )
+    for( int l = 1; l < L; l++ )
     {
         nb_neurons += d[l] + 1;
-        nb_weights += (d[l]+1)*d[l+1];
+        nb_weights += (d[l-1]+1)*d[l];
     }
-
-    nb_neurons += d[L-1] + 1;
 
     _W = new float[nb_weights];
     _X = new float[nb_neurons];
@@ -30,15 +28,12 @@ void MLP::init_matrices()
 
     for( int i = 0; i < nb_neurons; i++ )
     {
-        _X[i] = 1;
+        _X[i] = 0;
         _delta[i] = 0;
-
-        for( int j = 0; j < d[i]; j++, i++ )
-        {
-            _X[i] = 0;
-            _delta[i] = 0;
-        }
     }
+
+    for( int l = 0; l < L; l++ )
+        *X(l, 0) = 1.0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////// ACCESS METHODS
@@ -59,7 +54,7 @@ float* MLP::W( int layer, int neuron_out, int neuron_in )
 
 float* MLP::getNeuronsData( float* array, int layer, int neuron )
 {
-    if( layer < 0 || layer > L || neuron < 0 || neuron > d[layer] )
+    if( layer < 0 || layer >= L || neuron < 0 || neuron > d[layer] )
     {
         return NULL;
     }
@@ -105,6 +100,9 @@ float* MLP::expected_outputs( int elemIndex, int componentIndex  )
 
 void MLP::initElements( int nb_elements_alloc )
 {
+    if( _inputs ) delete[] _inputs;
+    if( _expected_outputs ) delete[] _expected_outputs;
+
     _inputs = new float[nb_elements_alloc*d[0]];
     _expected_outputs = new float[nb_elements_alloc*d[L-1]];
 }
@@ -142,11 +140,11 @@ void MLP::addElementArray( int count, float* array )
     nb_elements++;
     int index = 0;
 
-    for( int i = 0; i < d[0]; i++ )
-        *inputs( nb_elements-1, i ) = array[index++];
+    for( int i = 0; i < d[0]; i++, index++ )
+        *inputs( nb_elements-1, i ) = array[index];
 
-    for( int i = 0; i < d[L-1]; i++ )
-        *expected_outputs( nb_elements-1, i ) = array[index++];
+    for( int i = 0; i < d[L-1]; i++, index++ )
+        *expected_outputs( nb_elements-1, i ) = array[index];
 }
 
 void MLP::printElements()
@@ -171,19 +169,50 @@ void MLP::printElements()
         std::cout << std::endl;
     }
     std::cout << std::endl;
-    */
+*/
     for( int l = 1; l < L; l++ )
     {
         std::cout << "weights[" << l-1 << "] = " << std::endl;
-        for( int i = 0; i <= d[l-1]; i++ )
+        for( int i = 1; i <= d[l]; i++ )
         {
-            for( int j = 1; j <= d[l]; j++ ) 
-                std::cout << *W(l, i, j) << " ";
+            for( int j = 0; j <= d[l-1]; j++ ) 
+                std::cout << *W(l, j, i) << " ";
 
             std::cout << std::endl;
         }
         std::cout << std::endl;
     }
+
+    int max_neurons_layer  = d[0];
+    for( int l = 1; l < L; l++ )
+        if( max_neurons_layer < d[l] )
+            max_neurons_layer = d[l];
+
+    std::cout << "X = " << std::endl;
+    for( int n = 0; n <= max_neurons_layer; n++ )
+    {
+        for( int l = 0; l < L; l++ )
+            if( n <= d[l] )
+                std::cout << *X(l, n) << " ";
+            else 
+                std::cout << "  ";
+
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+
+    std::cout << "delta = " << std::endl;
+    for( int n = 0; n <= max_neurons_layer; n++ )
+    {
+        for( int l = 0; l < L; l++ )
+            if( n <= d[l] )
+                std::cout << *delta(l, n) << " ";
+            else 
+                std::cout << "  ";
+
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
 
     std::cout << "------------------------------------------------------" << std::endl;
 }
@@ -193,9 +222,8 @@ void MLP::printElements()
 void MLP::propagate( int k, bool is_used_for_classification )
 {   
     // Initialisation de la couche d'entrée
-    if( k >= 0 )
-        for( int j = 0; j < d[0]; j++ )
-            *X(0, j+1) = *inputs(k, j);
+    for( int j = 0; j < d[0]; j++ )
+        *X(0, j+1) = *inputs(k, j);
 
     // Calcul de chaque neurone 
     for( int l = 1; l < L; l++ )
@@ -206,10 +234,10 @@ void MLP::propagate( int k, bool is_used_for_classification )
             for( int i = 0; i <= d[l-1]; i++ )
                 signal += *W(l, i, j) * *X(l-1, i);
 
-            *X(l, j) = signal;
-
             if( is_used_for_classification || l != L-1 )
-                *X(l, j) = tanh(*X(l, j));
+                signal = tanh(signal);
+            
+            *X(l, j) = signal;
         }
 }
 
@@ -218,7 +246,7 @@ void MLP::retropropagate( int k, bool is_used_for_classification, float alpha )
     // Initialisation du delta de la couche de sortie
     for( int j = 1; j <= d[L-1]; j++ )
     {
-        *delta(L-1, j) = X(L-1, j) - expected_outputs(k, j-1);
+        *delta(L-1, j) = *X(L-1, j) - *expected_outputs(k, j-1);
 
         if( is_used_for_classification )
             *delta(L-1, j) *= ( 1.0 - pow( *X(L-1, j), 2.0 ) );
@@ -296,7 +324,19 @@ void MLP::generatePrediction( bool is_used_for_classification, int count, ... )
 
     va_end( args ); 
 
-    propagate( -1, is_used_for_classification );
+    for( int l = 1; l < L; l++ )
+        for( int j = 1; j <= d[l]; j++ )
+        {
+            float signal = 0;
+
+            for( int i = 0; i <= d[l-1]; i++ )
+                signal += *W(l, i, j) * *X(l-1, i);
+
+            if( is_used_for_classification || l != L-1 )
+                signal = tanh(signal);
+            
+            *X(l, j) = signal;
+        }
 }
 
 void MLP::generatePredictionArray( bool is_used_for_classification, int count, float* array )
@@ -310,7 +350,19 @@ void MLP::generatePredictionArray( bool is_used_for_classification, int count, f
     for( int i = 1; i <= d[0]; i++ )
         *X(0, i) = array[i-1];
 
-    propagate( -1, is_used_for_classification );
+    for( int l = 1; l < L; l++ )
+        for( int j = 1; j <= d[l]; j++ )
+        {
+            float signal = 0;
+
+            for( int i = 0; i <= d[l-1]; i++ )
+                signal += *W(l, i, j) * *X(l-1, i);
+
+            if( is_used_for_classification || l != L-1 )
+                signal = tanh(signal);
+            
+            *X(l, j) = signal;
+        }
 }
 
 float MLP::getPrediction( int index )
@@ -322,4 +374,23 @@ float MLP::getPrediction( int index )
     }
     
     return *X(L-1, index+1);
+}
+
+float MLP::test( bool is_used_for_classification )
+{
+    float success = 0;
+
+    for( int k = 0; k < nb_elements; k++ )
+    {
+        propagate( k, is_used_for_classification );
+
+        bool toIncrement = true;
+        for( int i = 1; i < d[L-1] && toIncrement; i++ )
+            toIncrement = ( ( *X(L-1, i) > 0 &&  *expected_outputs(k, i-1) > 0 ) || ( *X(L-1, i) < 0 &&  *expected_outputs(k, i-1) < 0 ));
+
+        if( toIncrement )   
+            success += 1.0;
+    }
+
+    return (success*100.0)/static_cast<float>(nb_elements);
 }

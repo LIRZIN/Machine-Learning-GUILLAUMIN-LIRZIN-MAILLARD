@@ -27,5 +27,8 @@ mainMLP.o : mainMLP.cpp
 lib.so : 
 	g++ -std=c++17 -fPIC -shared MultiLayerPerceptron.cpp MultiLayerPerceptron_c_wrapper.cpp $(FLAGS) -o libMLP.so
 
+MLP.so : 
+	g++ -std=c++17 -fPIC -shared -O3 MLP.cpp MLP_c_wrapper.cpp $(FLAGS) -o MLP.so
+
 clean: 
-	rm -f *.o *.so main 
+	rm -f *.o *.so main mainMLP

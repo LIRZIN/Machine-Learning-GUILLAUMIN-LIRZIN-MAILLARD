@@ -2,7 +2,7 @@
 
 extern "C" 
 {
-    void* MultiLayerPerceptron_new_2(bool n, int a, int b) { return reinterpret_cast<void*>(new MultiLayerPerceptron(n, a, b)); }
+    void* MultiLayerPerceptron_new_2(bool n, int a, int b) {  }
     void* MultiLayerPerceptron_new_3(bool n, int a, int b, int c) { return reinterpret_cast<void*>(new MultiLayerPerceptron(n, a, b, c)); }
     void* MultiLayerPerceptron_new_4(bool n, int a, int b, int c, int d) { return reinterpret_cast<void*>(new MultiLayerPerceptron(n, a, b, c, d)); }
 
