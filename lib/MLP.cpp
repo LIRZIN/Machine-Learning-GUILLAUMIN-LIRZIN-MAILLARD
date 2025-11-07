@@ -219,7 +219,7 @@ void MLP::print()
 
 ////////////////////////////////////////////////////////////////////////////////////////////// TRAINING METHODS
 
-void MLP::propagate( int k, bool is_used_for_classification )
+void MLP::propagate( int k )
 {   
     // Initialisation de la couche d'entrée
     if( k >= 0 ) // Pour éviter la duplication de code entre l'entrainement et la prédiction
@@ -235,19 +235,26 @@ void MLP::propagate( int k, bool is_used_for_classification )
 
             for( ; i <= d[l-1]-8; i += 8 )
             {
-                signal += *W(l, i, j) * *X(l-1, i);
-                signal += *W(l, i+1, j) * *X(l-1, i+1);
-                signal += *W(l, i+2, j) * *X(l-1, i+2);
-                signal += *W(l, i+3, j) * *X(l-1, i+3);
-                signal += *W(l, i+4, j) * *X(l-1, i+4);
-                signal += *W(l, i+5, j) * *X(l-1, i+5);
-                signal += *W(l, i+6, j) * *X(l-1, i+6);
-                signal += *W(l, i+7, j) * *X(l-1, i+7);
+                float signal0 = *W(l, i, j) * *X(l-1, i);
+                float signal1 = *W(l, i+1, j) * *X(l-1, i+1);
+                float signal2 = *W(l, i+2, j) * *X(l-1, i+2);
+                float signal3 = *W(l, i+3, j) * *X(l-1, i+3);
+                float signal4 = *W(l, i+4, j) * *X(l-1, i+4);
+                float signal5 = *W(l, i+5, j) * *X(l-1, i+5);
+                float signal6 = *W(l, i+6, j) * *X(l-1, i+6);
+                float signal7 = *W(l, i+7, j) * *X(l-1, i+7);
+                float signal01 = signal0 + signal1;
+                float signal23 = signal2 + signal3;
+                float signal45 = signal4 + signal5;
+                float signal67 = signal6 + signal7;
+                float signal0123 = signal01 + signal23;
+                float signal4567 = signal45 + signal67;
+                signal += signal0123 + signal4567;
             }
 
             for( ; i <= d[l-1]; i++ )
                 signal += *W(l, i, j) * *X(l-1, i);
-
+            
             if( is_used_for_classification || l != L-1 )
                 signal = tanh(signal);
             
@@ -255,7 +262,7 @@ void MLP::propagate( int k, bool is_used_for_classification )
         }
 }
 
-void MLP::retropropagate( int k, bool is_used_for_classification, float alpha )
+void MLP::retropropagate( int k, float alpha )
 {
     // Initialisation du delta de la couche de sortie
     for( int j = 1; j <= d[L-1]; j++ )
@@ -275,14 +282,21 @@ void MLP::retropropagate( int k, bool is_used_for_classification, float alpha )
 
             for( ; j <= d[l]-8; j += 8 )
             {
-                total += *W(l, i, j) * *delta(l, j);
-                total += *W(l, i, j+1) * *delta(l, j+1);
-                total += *W(l, i, j+2) * *delta(l, j+2);
-                total += *W(l, i, j+3) * *delta(l, j+3);
-                total += *W(l, i, j+4) * *delta(l, j+4);
-                total += *W(l, i, j+5) * *delta(l, j+5);
-                total += *W(l, i, j+6) * *delta(l, j+6);
-                total += *W(l, i, j+7) * *delta(l, j+7);
+                float total0 = *W(l, i, j) * *delta(l, j);
+                float total1 = *W(l, i, j+1) * *delta(l, j+1);
+                float total2 = *W(l, i, j+2) * *delta(l, j+2);
+                float total3 = *W(l, i, j+3) * *delta(l, j+3);
+                float total4 = *W(l, i, j+4) * *delta(l, j+4);
+                float total5 = *W(l, i, j+5) * *delta(l, j+5);
+                float total6 = *W(l, i, j+6) * *delta(l, j+6);
+                float total7 = *W(l, i, j+7) * *delta(l, j+7);
+                float total01 = total0 + total1;
+                float total23 = total2 + total3;
+                float total45 = total4 + total5;
+                float total67 = total6 + total7;
+                float total0123 = total01 + total23;
+                float total4567 = total45 + total67;
+                total += total0123 + total4567;
             }
 
             for( ; j <= d[l]; j++ )
@@ -314,7 +328,7 @@ void MLP::retropropagate( int k, bool is_used_for_classification, float alpha )
         }
 }
 
-void MLP::train( int nb_iterations, float alpha, bool is_used_for_classification, int MSE_interval )
+void MLP::train( int nb_iterations, float alpha, int MSE_interval )
 {
     int MSE_index = 0;
     float tmpMSE = 0.0;
@@ -331,8 +345,8 @@ void MLP::train( int nb_iterations, float alpha, bool is_used_for_classification
     {
         int k = rand()%nb_elements;
 
-        propagate( k, is_used_for_classification );
-        retropropagate( k, is_used_for_classification, alpha );
+        propagate( k );
+        retropropagate( k, alpha );
 
         if( MSE_interval > 0 )
         {
@@ -349,9 +363,37 @@ void MLP::train( int nb_iterations, float alpha, bool is_used_for_classification
     }
 }
 
+void MLP::quickTrain()
+{
+    if( L != 2 )
+        throw std::runtime_error(std::string("On ne peut pas déterminer les poids optimaux en utilisant la formule normale quand le réseau a des couches cachées ( dans " + std::string(__FUNCTION__) + "() )"));
+
+    Eigen::MatrixXd eigenInputs( nb_elements, d[0]+1 );
+    Eigen::MatrixXd eigenExpected_outputs( nb_elements, d[L-1] );
+
+    for( int i = 0; i < nb_elements; i++ )
+    {
+        eigenInputs(i, 0) = 1.0;
+        for( int j = 0; j < d[0]; j++ )
+            eigenInputs(i, j+1) = *inputs(i, j);
+
+        for( int j = 0; j < d[L-1]; j++ )
+            eigenExpected_outputs(i, j) = *expected_outputs(i, j);
+    }
+
+    Eigen::MatrixXd weights = ( ( eigenInputs.transpose() * eigenInputs ) * eigenInputs.transpose() ) * eigenExpected_outputs;
+    std::cout << eigenInputs << std::endl;
+    std::cout << eigenExpected_outputs << std::endl;
+    std::cout << weights << std::endl;
+
+    for( int i = 0; i <= d[0]; i++ )
+        for( int j = 1; j <= d[L-1]; j++ )
+            *W(1, i, j) = weights(i, j-1);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////// PREDICTING METHODS
 
-void MLP::generatePrediction( bool is_used_for_classification, int count, ... )
+void MLP::generatePrediction( int count, ... )
 {
     if( count != d[0] )
         throw std::runtime_error(std::string("count n'est pas égal à " + std::to_string(d[0]) + " comme il devrait l'être ( " + std::to_string(count) + " donné à " + __FUNCTION__ + "() )"));
@@ -364,10 +406,10 @@ void MLP::generatePrediction( bool is_used_for_classification, int count, ... )
 
     va_end( args ); 
 
-    propagate( -1, is_used_for_classification );
+    propagate( -1 );
 }
 
-void MLP::generatePredictionArray( bool is_used_for_classification, int count, float* array )
+void MLP::generatePredictionArray( int count, float* array )
 {
     if( count != d[0] )
         throw std::runtime_error(std::string("count n'est pas égal à " + std::to_string(d[0]) + " comme il devrait l'être ( " + std::to_string(count) + " donné à " + __FUNCTION__ + "() )"));
@@ -375,7 +417,7 @@ void MLP::generatePredictionArray( bool is_used_for_classification, int count, f
     for( int i = 1; i <= d[0]; i++ )
         *X(0, i) = array[i-1];
 
-    propagate( -1, is_used_for_classification );
+    propagate( -1 );
 }
 
 float MLP::getPrediction( int index )
@@ -386,13 +428,13 @@ float MLP::getPrediction( int index )
     return *X(L-1, index+1);
 }
 
-float MLP::test( bool is_used_for_classification )
+float MLP::test()
 {
     float success = 0;
 
     for( int k = 0; k < nb_elements; k++ )
     {
-        propagate( k, is_used_for_classification );
+        propagate( k );
 
         bool toIncrement = true;
         for( int i = 1; i <= d[L-1] && toIncrement; i++ )

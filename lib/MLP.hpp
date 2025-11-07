@@ -9,6 +9,8 @@
 
 class MLP
 {
+    // dicte si le réseau de neurones est utilisé pour classifier ou non
+    bool is_used_for_classification = true;
     // nombre de neurones par couche, inclus la couche d'entrée
     int* d = NULL;
     // nombre de couches
@@ -55,9 +57,9 @@ class MLP
     float* expected_outputs( int elemIndex, int componentIndex = 0 );
 
     // Remplie X de couche en couche pour calculer la sortie du réseau
-    void propagate( int k, bool is_used_for_classification );
+    void propagate( int k );
     // Remplie delta de couche en couche pour ensuite rectifier les poids
-    void retropropagate( int k, bool is_used_for_classification, float alpha );
+    void retropropagate( int k, float alpha );
 
     public : 
         MLP( int count, ... )  
@@ -105,6 +107,7 @@ class MLP
             delete[] _MSE;
         }
 
+        void setUsedForClassification( bool val ) { is_used_for_classification = val; }
         // Imprime le contenu des toutes les matrices 
         void print();
 
@@ -116,17 +119,18 @@ class MLP
         void addElementArray( int count, float* array );
 
         // Entraine le réseau sur nb_iterations
-        void train( int nb_iterations, float alpha, bool is_used_for_classification, int MSE_interval = 0 );
+        void train( int nb_iterations, float alpha, int MSE_interval = 0 );
+        void quickTrain();
 
         // Génère une prédiction selon l'entrée donnée et calcule la sortie qui est stocké dans la dernière couche de X
-        void generatePrediction( bool is_used_for_classification, int count, ... );
-        void generatePredictionArray( bool is_used_for_classification, int count, float* array );
+        void generatePrediction( int count, ... );
+        void generatePredictionArray( int count, float* array );
         // Renvoie la valeur du neurone à l'index+1 de la dernière couche de X
         float getPrediction( int index );
 
         // Génère une prédiction pour chaque couple ( entrée, sortie attendue ) 
         // et calcule un pourcentage de succès selon les valeurs générées
-        float test( bool is_used_for_classification );
+        float test();
 
         // Simple getters pour lire les valeurs de MSE
         int getMSESize() { return nb_MSE; }

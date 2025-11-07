@@ -28,6 +28,11 @@ extern "C"
         delete reinterpret_cast<MLP*>(obj);
     }
 
+    void MLP_setUsedForClassification( void* obj, bool val )
+    {
+        reinterpret_cast<MLP*>(obj)->setUsedForClassification( val ); 
+    }
+
     void MLP_initElements( void* obj, int count )
     {
         reinterpret_cast<MLP*>(obj)->initElements( count ); 
@@ -58,9 +63,14 @@ extern "C"
         reinterpret_cast<MLP*>(obj)->print(); 
     }
 
-    void MLP_train( void* obj, int nb_iterations, float alpha, bool is_used_for_classification, int MSE_interval )
+    void MLP_train( void* obj, int nb_iterations, float alpha, int MSE_interval )
     { 
-        reinterpret_cast<MLP*>(obj)->train( nb_iterations, alpha, is_used_for_classification, MSE_interval ); 
+        reinterpret_cast<MLP*>(obj)->train( nb_iterations, alpha, MSE_interval ); 
+    }
+
+    void MLP_quickTrain( void* obj )
+    {
+        reinterpret_cast<MLP*>(obj)->quickTrain(); 
     }
 
     void MLP_generatePrediction(void* obj, int count, ... ) 
@@ -75,14 +85,14 @@ extern "C"
         }
         va_end( args ); 
 
-        reinterpret_cast<MLP*>(obj)->generatePredictionArray( true, count, array ); 
+        reinterpret_cast<MLP*>(obj)->generatePredictionArray( count, array ); 
 
         delete[] array;
     }
 
     void MLP_generatePredictionArray(void* obj, int count, void* array ) 
     { 
-        reinterpret_cast<MLP*>(obj)->generatePredictionArray( true, count, static_cast<float*>(array) ); 
+        reinterpret_cast<MLP*>(obj)->generatePredictionArray( count, static_cast<float*>(array) ); 
     }
 
     float MLP_getPrediction( void* obj, int index )
@@ -90,9 +100,9 @@ extern "C"
         return reinterpret_cast<MLP*>(obj)->getPrediction( index ); 
     }
 
-    float MLP_test( void* obj, bool is_used_for_classification )
+    float MLP_test( void* obj )
     {
-        return reinterpret_cast<MLP*>(obj)->test(is_used_for_classification);
+        return reinterpret_cast<MLP*>(obj)->test();
     }
 
     int MLP_getMSESize( void* obj )
@@ -105,6 +115,16 @@ extern "C"
         return reinterpret_cast<MLP*>(obj)->MSE( index ); 
     }
 }
+
+/*
+Remettre le bon .so dans tests
+
+Relancer les cas de tests
+
+Bonus :
+Faire les appels recursifs sur les fonctions variadiques ( constructeur puis autre )
+
+*/
 
 /*
 lib = ctypes.CDLL("/content/MLP.so")
