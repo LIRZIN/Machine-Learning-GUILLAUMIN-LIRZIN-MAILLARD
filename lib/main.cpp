@@ -1,69 +1,51 @@
-//#include "exemple_Rosenblatt.hpp"
-//#include "LinearModel.hpp"
-#include "MultiLayerPerceptron.hpp"
+#include "MLP.hpp"
 
 int main()
 {
-    int layers[2] = { 2, 2 };
-    MultiLayerPerceptron mlp(2, layers);
+    /*
+    int layers[2] = { 2, 1 };
+    MLP mlp(2, layers);
 
-    for( int i = 0; i < 100; i++ )
+    mlp.initElements( 3 );
+    mlp.addElement( 3, 1.0, 1.0, 1.0 );
+    mlp.addElement( 3, 2.0, 3.0, -1.0 );
+    mlp.addElement( 3, 3.0, 3.0, -1.0 );
+    
+    mlp.train( 100000, 0.01, true );
+
+    std::cout << "success rate : " << mlp.test( true ) << "%\n";
+    */
+    /*
+    int layers[3] = { 2, 3, 1 };
+    MLP mlp(3, layers);
+
+    mlp.initElements( 4 );
+    mlp.addElement( 3, 0, 0, -1 );
+    mlp.addElement( 3, 1, 0, 1 );
+    mlp.addElement( 3, 0, 1, 1 );
+    mlp.addElement( 3, 1, 1, -1 );
+    
+    mlp.train( 1000000, 0.01, true );
+
+    std::cout << "success rate : " << mlp.test( true ) << "%\n";
+    */
+    int layers[3] = { 2, 1 };
+    MLP mlp(2, layers);
+    int nb_elements = 200;
+    mlp.initElements( nb_elements );
+
+    for( int i = 0; i < nb_elements; i++ )
     {
         double x1 = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
         double x2 = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
         double y1 = ( x2 >= -1.0*x1 + 0.7 ) ? 1.0 : -1.0;
-        double y2 = ( x2 >= -1.0*x1 + 0.7 ) ? -1.0 : 1.0;
-        mlp.addElement( 4, x1, x2, y1, y2 );
+        //double y2 = ( x2 >= -1.0*x1 + 0.7 ) ? -1.0 : 1.0;
+        mlp.addElement( 3, x1, x2, y1 );
     }
     
-    mlp.train( 10000, 0.01, true );
-    //mlp.quickTrain();
+    mlp.train( 100000, 0.01, true );
+    float array[2] = { 0.5, 0.5 };
+    mlp.generatePredictionArray( true, 2, array );
 
-    double success = 0.0;
-
-    for( int i = 0; i < 100; i++ )
-    {
-        double x1 = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
-        double x2 = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
-        double y1 = ( x2 >= -1.0*x1 + 0.7 ) ? 1.0 : -1.0;
-        double y2 = ( x2 >= -1.0*x1 + 0.7 ) ? -1.0 : 1.0;
-
-        mlp.generatePrediction( true, 2, x1, x2 );
-
-        double res0 = mlp.getPrediction(0);
-        double res1 = mlp.getPrediction(1);
-        std::cout << res0 << ", " << res1 << "||" << y1 << ", " << y2 << std::endl;
-
-        if( ( y1 < y2 && res0 < res1 ) || ( y1 > y2 && res0 > res1 ) )
-        {
-            success += 1.0;
-        }
-    }
-
-    std::cout << "success rate : " << success << "%\n";
-    /*
-    LinearModel lm(2);
-    for( int i = 0; i < 10; i++ )
-        lm.addElement( 3, 0.5, 0.5, 1.0 );
-    lm.printElements();
-    lm.train( 10000, 0.001 );
-    */
-    /*
-    ExempleRosenblatt er( 200, 3, -1.0, 0.7, 0.0001 );
-
-    // INITIALIZATION
-    er.populate_points_random();
-    er.init_classify();
-
-    // MODEL CREATION
-    er.generate_weights();
-
-    // MODEL TRAINING USING ROSENBLATT'S RULE
-    er.train(100000, 1000);
-
-    // PRINT FUNCTIONS
-    er.print_points("points.txt");
-    er.print_background("bg.txt");
-    er.print_MSE("MSE.txt");
-    */
+    std::cout << "success rate : " << mlp.test( true ) << "%\n";
 }

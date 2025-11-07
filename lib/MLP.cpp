@@ -40,10 +40,12 @@ void MLP::init_matrices()
 
 float* MLP::W( int layer, int neuron_out, int neuron_in )
 {
-    if( layer <= 0 || layer > L || neuron_out < 0 || neuron_out > d[layer-1] || neuron_in <= 0 || neuron_in > d[layer] )
-    {
-        return NULL;
-    }
+    if( layer <= 0 || layer > L )
+        throw std::runtime_error(std::string("layer donné n'est pas entre 1 et " + std::to_string(L-1) + " comme il devrait l'être ( " + std::to_string(layer) + " donné à " + __FUNCTION__ + "() )"));
+    if( neuron_out < 0 || neuron_out > d[layer-1] )
+        throw std::runtime_error(std::string("neuron_out donné n'est pas entre 0 et " + std::to_string(d[layer-1] ) + " comme il devrait l'être ( " + std::to_string(neuron_out) + " donné à " + __FUNCTION__ + "() )"));
+    if( neuron_in <= 0 || neuron_in > d[layer] )
+        throw std::runtime_error(std::string("neuron_in donné n'est pas entre 1 et " + std::to_string(d[layer]) + " comme il devrait l'être ( " + std::to_string(neuron_in) + " donné à " + __FUNCTION__ + "() )"));
 
     int offset = 0;
     for( int l = 1; l < layer; l++ )    
@@ -54,10 +56,10 @@ float* MLP::W( int layer, int neuron_out, int neuron_in )
 
 float* MLP::getNeuronsData( float* array, int layer, int neuron )
 {
-    if( layer < 0 || layer >= L || neuron < 0 || neuron > d[layer] )
-    {
-        return NULL;
-    }
+    if( layer < 0 || layer >= L )
+        throw std::runtime_error(std::string("layer donné n'est pas entre 0 et " + std::to_string(L-1) + " comme il devrait l'être ( " + std::to_string(layer) + " donné à " + __FUNCTION__ + "() )"));
+    if( neuron < 0 || neuron > d[layer] )
+        throw std::runtime_error(std::string("neuron donné n'est pas entre 0 et " + std::to_string(d[layer]) + " comme il devrait l'être ( " + std::to_string(neuron) + " donné à " + __FUNCTION__ + "() )"));
 
     int offset = 0;
     for( int l = 0; l < layer; l++ )    
@@ -78,20 +80,20 @@ float* MLP::delta( int layer, int neuron )
 
 float* MLP::inputs( int elemIndex, int componentIndex )
 {
-    if( elemIndex < 0 || elemIndex >= nb_elements || componentIndex < 0 || componentIndex >= d[0] )
-    {
-        return NULL;
-    }
+    if( elemIndex < 0 || elemIndex >= nb_elements )
+        throw std::runtime_error(std::string("elemIndex donné n'est pas entre 0 et " + std::to_string(nb_elements-1) + " comme il devrait l'être ( " + std::to_string(elemIndex) + " donné à " + __FUNCTION__ + "() )"));
+    if( componentIndex < 0 || componentIndex >= d[0] )
+        throw std::runtime_error(std::string("componentIndex donné n'est pas entre 0 et " + std::to_string(d[L-1]-1) + " comme il devrait l'être ( " + std::to_string(componentIndex) + " donné à " + __FUNCTION__ + "() )")); 
 
     return &(_inputs[elemIndex*d[0]+componentIndex]);
 }
 
 float* MLP::expected_outputs( int elemIndex, int componentIndex  )
 {
-    if( elemIndex < 0 || elemIndex >= nb_elements || componentIndex < 0 || componentIndex >= d[L-1] )
-    {
-        return NULL;
-    }
+    if( elemIndex < 0 || elemIndex >= nb_elements )
+        throw std::runtime_error(std::string("elemIndex donné n'est pas entre 0 et " + std::to_string(nb_elements-1) + " comme il devrait l'être ( " + std::to_string(elemIndex) + " donné à " + __FUNCTION__ + "() )"));
+    if( componentIndex < 0 || componentIndex >= d[L-1] )
+        throw std::runtime_error(std::string("componentIndex donné n'est pas entre 0 et " + std::to_string(d[L-1]-1) + " comme il devrait l'être ( " + std::to_string(componentIndex) + " donné à " + __FUNCTION__ + "() )"));
     
     return &(_expected_outputs[elemIndex*d[L-1]+componentIndex]);
 }
@@ -110,10 +112,7 @@ void MLP::initElements( int nb_elements_alloc )
 void MLP::addElement( int count, ... )
 {
     if( count != d[0]+d[L-1] )
-    {
-        std::cout << "Could not add element : invalid number of arguments. " << count << " given, " << d[0]+d[L-1] << " needed." << std::endl;
-        return; 
-    }
+        throw std::runtime_error(std::string("count n'est pas égal à " + std::to_string(d[0]+d[L-1]) + " comme il devrait l'être ( " + std::to_string(count) + " donné à " + __FUNCTION__ + "() )"));
 
     va_list args;
     va_start( args, count );
@@ -132,10 +131,7 @@ void MLP::addElement( int count, ... )
 void MLP::addElementArray( int count, float* array )
 {
     if( count != d[0]+d[L-1] )
-    {
-        std::cout << "Could not add element : invalid number of arguments. " << count << " given, " << d[0]+d[L-1] << " needed." << std::endl;
-        return; 
-    }
+        throw std::runtime_error(std::string("count n'est pas égal à " + std::to_string(d[0]+d[L-1]) + " comme il devrait l'être ( " + std::to_string(count) + " donné à " + __FUNCTION__ + "() )"));
 
     nb_elements++;
     int index = 0;
@@ -147,9 +143,13 @@ void MLP::addElementArray( int count, float* array )
         *expected_outputs( nb_elements-1, i ) = array[index];
 }
 
-void MLP::printElements()
+void MLP::print()
 {
-    /*
+    std::cout << "d = ";
+    for( int i = 0; i < L; i++ )
+        std::cout << d[i] << " ";
+    std::cout << std::endl;
+
     std::cout << "inputs = " << std::endl;
     for( int i = 0; i < nb_elements; i++ )
     {
@@ -169,7 +169,7 @@ void MLP::printElements()
         std::cout << std::endl;
     }
     std::cout << std::endl;
-*/
+
     for( int l = 1; l < L; l++ )
     {
         std::cout << "weights[" << l-1 << "] = " << std::endl;
@@ -222,16 +222,30 @@ void MLP::printElements()
 void MLP::propagate( int k, bool is_used_for_classification )
 {   
     // Initialisation de la couche d'entrée
-    for( int j = 0; j < d[0]; j++ )
-        *X(0, j+1) = *inputs(k, j);
+    if( k >= 0 ) // Pour éviter la duplication de code entre l'entrainement et la prédiction
+        for( int j = 0; j < d[0]; j++ )
+            *X(0, j+1) = *inputs(k, j);
 
     // Calcul de chaque neurone 
     for( int l = 1; l < L; l++ )
         for( int j = 1; j <= d[l]; j++ )
         {
             float signal = 0;
+            int i = 0;
 
-            for( int i = 0; i <= d[l-1]; i++ )
+            for( ; i <= d[l-1]-8; i += 8 )
+            {
+                signal += *W(l, i, j) * *X(l-1, i);
+                signal += *W(l, i+1, j) * *X(l-1, i+1);
+                signal += *W(l, i+2, j) * *X(l-1, i+2);
+                signal += *W(l, i+3, j) * *X(l-1, i+3);
+                signal += *W(l, i+4, j) * *X(l-1, i+4);
+                signal += *W(l, i+5, j) * *X(l-1, i+5);
+                signal += *W(l, i+6, j) * *X(l-1, i+6);
+                signal += *W(l, i+7, j) * *X(l-1, i+7);
+            }
+
+            for( ; i <= d[l-1]; i++ )
                 signal += *W(l, i, j) * *X(l-1, i);
 
             if( is_used_for_classification || l != L-1 )
@@ -257,8 +271,21 @@ void MLP::retropropagate( int k, bool is_used_for_classification, float alpha )
         for( int i = 1; i <= d[l-1]; i++ )
         {
             float total = 0;
+            int j = 1;
 
-            for( int j = 1; j <= d[l]; j++ )
+            for( ; j <= d[l]-8; j += 8 )
+            {
+                total += *W(l, i, j) * *delta(l, j);
+                total += *W(l, i, j+1) * *delta(l, j+1);
+                total += *W(l, i, j+2) * *delta(l, j+2);
+                total += *W(l, i, j+3) * *delta(l, j+3);
+                total += *W(l, i, j+4) * *delta(l, j+4);
+                total += *W(l, i, j+5) * *delta(l, j+5);
+                total += *W(l, i, j+6) * *delta(l, j+6);
+                total += *W(l, i, j+7) * *delta(l, j+7);
+            }
+
+            for( ; j <= d[l]; j++ )
                 total += *W(l, i, j) * *delta(l, j);
 
            *delta(l-1,i) = ( 1.0 - pow(*X(l-1, i), 2.0) ) * total;
@@ -267,8 +294,24 @@ void MLP::retropropagate( int k, bool is_used_for_classification, float alpha )
     // Correction des poids  
     for( int l = 1; l < L; l++ )
         for( int i = 0; i <= d[l-1]; i++ )
-            for( int j = 1; j <= d[l]; j++ )
+        {
+            int j = 1; 
+
+            for( ;j <= d[l]-8; j += 8 )
+            {
                 *W(l, i, j) -= alpha * *X(l-1, i) * *delta(l, j);
+                *W(l, i, j+1) -= alpha * *X(l-1, i) * *delta(l, j+1);
+                *W(l, i, j+2) -= alpha * *X(l-1, i) * *delta(l, j+2);
+                *W(l, i, j+3) -= alpha * *X(l-1, i) * *delta(l, j+3);
+                *W(l, i, j+4) -= alpha * *X(l-1, i) * *delta(l, j+4);
+                *W(l, i, j+5) -= alpha * *X(l-1, i) * *delta(l, j+5);
+                *W(l, i, j+6) -= alpha * *X(l-1, i) * *delta(l, j+6);
+                *W(l, i, j+7) -= alpha * *X(l-1, i) * *delta(l, j+7);
+            }
+
+            for( ;j <= d[l]; j++ )
+                *W(l, i, j) -= alpha * *X(l-1, i) * *delta(l, j);
+        }
 }
 
 void MLP::train( int nb_iterations, float alpha, bool is_used_for_classification, int MSE_interval )
@@ -311,10 +354,7 @@ void MLP::train( int nb_iterations, float alpha, bool is_used_for_classification
 void MLP::generatePrediction( bool is_used_for_classification, int count, ... )
 {
     if( count != d[0] )
-    {
-        std::cout << "Could not add element : invalid number of arguments. " << count << " given, " << d[0] << " needed." << std::endl;
-        return; 
-    }
+        throw std::runtime_error(std::string("count n'est pas égal à " + std::to_string(d[0]) + " comme il devrait l'être ( " + std::to_string(count) + " donné à " + __FUNCTION__ + "() )"));
 
     va_list args;
     va_start( args, count );
@@ -324,55 +364,25 @@ void MLP::generatePrediction( bool is_used_for_classification, int count, ... )
 
     va_end( args ); 
 
-    for( int l = 1; l < L; l++ )
-        for( int j = 1; j <= d[l]; j++ )
-        {
-            float signal = 0;
-
-            for( int i = 0; i <= d[l-1]; i++ )
-                signal += *W(l, i, j) * *X(l-1, i);
-
-            if( is_used_for_classification || l != L-1 )
-                signal = tanh(signal);
-            
-            *X(l, j) = signal;
-        }
+    propagate( -1, is_used_for_classification );
 }
 
 void MLP::generatePredictionArray( bool is_used_for_classification, int count, float* array )
 {
     if( count != d[0] )
-    {
-        std::cout << "Could not add element : invalid number of arguments. " << count << " given, " << d[0] << " needed." << std::endl;
-        return; 
-    }
+        throw std::runtime_error(std::string("count n'est pas égal à " + std::to_string(d[0]) + " comme il devrait l'être ( " + std::to_string(count) + " donné à " + __FUNCTION__ + "() )"));
 
     for( int i = 1; i <= d[0]; i++ )
         *X(0, i) = array[i-1];
 
-    for( int l = 1; l < L; l++ )
-        for( int j = 1; j <= d[l]; j++ )
-        {
-            float signal = 0;
-
-            for( int i = 0; i <= d[l-1]; i++ )
-                signal += *W(l, i, j) * *X(l-1, i);
-
-            if( is_used_for_classification || l != L-1 )
-                signal = tanh(signal);
-            
-            *X(l, j) = signal;
-        }
+    propagate( -1, is_used_for_classification );
 }
 
 float MLP::getPrediction( int index )
 {
     if( index < 0 || index >= d[L-1] )
-    {
-        std::cout << "invalid neuron index. " << index << " is not between 0 and " << d[L-1]-1 << "." << std::endl;
-        return 999999.9;
-    }
-    
+        throw std::runtime_error(std::string("index donné n'est pas entre 0 et " + std::to_string(d[L-1]-1) + " comme il devrait l'être ( " + std::to_string(index) + " donné à " + __FUNCTION__ + "() )"));
+
     return *X(L-1, index+1);
 }
 
@@ -385,7 +395,7 @@ float MLP::test( bool is_used_for_classification )
         propagate( k, is_used_for_classification );
 
         bool toIncrement = true;
-        for( int i = 1; i < d[L-1] && toIncrement; i++ )
+        for( int i = 1; i <= d[L-1] && toIncrement; i++ )
             toIncrement = ( ( *X(L-1, i) > 0 &&  *expected_outputs(k, i-1) > 0 ) || ( *X(L-1, i) < 0 &&  *expected_outputs(k, i-1) < 0 ));
 
         if( toIncrement )   

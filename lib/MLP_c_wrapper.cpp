@@ -17,6 +17,11 @@ extern "C"
         return reinterpret_cast<void*>(new MLP(count, array));
         delete[] array;
     }
+    
+    void* MLP_new_array( int count, void* d )
+    {
+        return reinterpret_cast<void*>(new MLP(count, static_cast<int*>(d)));
+    }
 
     void MLP_delete( void* obj )
     {
@@ -43,14 +48,19 @@ extern "C"
         delete[] array;
     }
 
-    void MLP_printElements( void* obj ) 
+    void MLP_addElementArray(void* obj, int count, void* array ) 
     { 
-        reinterpret_cast<MLP*>(obj)->printElements(); 
+        reinterpret_cast<MLP*>(obj)->addElementArray( count, static_cast<float*>(array) ); 
     }
 
-    void MLP_train( void* obj, int nb_iterations, double alpha, bool is_used_for_classification, int MSE_interval )
+    void MLP_print( void* obj ) 
     { 
-        reinterpret_cast<MLP*>(obj)->train( nb_iterations, static_cast<float>(alpha), is_used_for_classification, MSE_interval ); 
+        reinterpret_cast<MLP*>(obj)->print(); 
+    }
+
+    void MLP_train( void* obj, int nb_iterations, float alpha, bool is_used_for_classification, int MSE_interval )
+    { 
+        reinterpret_cast<MLP*>(obj)->train( nb_iterations, alpha, is_used_for_classification, MSE_interval ); 
     }
 
     void MLP_generatePrediction(void* obj, int count, ... ) 
@@ -70,12 +80,17 @@ extern "C"
         delete[] array;
     }
 
+    void MLP_generatePredictionArray(void* obj, int count, void* array ) 
+    { 
+        reinterpret_cast<MLP*>(obj)->generatePredictionArray( true, count, static_cast<float*>(array) ); 
+    }
+
     float MLP_getPrediction( void* obj, int index )
     { 
         return reinterpret_cast<MLP*>(obj)->getPrediction( index ); 
     }
 
-    double MLP_test( void* obj, bool is_used_for_classification )
+    float MLP_test( void* obj, bool is_used_for_classification )
     {
         return reinterpret_cast<MLP*>(obj)->test(is_used_for_classification);
     }
@@ -85,7 +100,7 @@ extern "C"
         return reinterpret_cast<MLP*>(obj)->getMSESize(); 
     }
 
-    double MLP_MSE( void* obj, int index )
+    float MLP_MSE( void* obj, int index )
     { 
         return reinterpret_cast<MLP*>(obj)->MSE( index ); 
     }
