@@ -381,7 +381,7 @@ void MLP::quickTrain()
             eigenExpected_outputs(i, j) = *expected_outputs(i, j);
     }
 
-    Eigen::MatrixXd weights = ( ( eigenInputs.transpose() * eigenInputs ) * eigenInputs.transpose() ) * eigenExpected_outputs;
+    Eigen::MatrixXd weights = ( ( eigenInputs.transpose() * eigenInputs ).inverse() * eigenInputs.transpose() ) * eigenExpected_outputs;
     std::cout << eigenInputs << std::endl;
     std::cout << eigenExpected_outputs << std::endl;
     std::cout << weights << std::endl;
