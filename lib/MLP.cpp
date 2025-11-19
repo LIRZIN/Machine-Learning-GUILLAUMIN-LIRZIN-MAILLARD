@@ -337,7 +337,7 @@ void MLP::train( int nb_iterations, float alpha, int MSE_interval )
         if( !_MSE )
             delete[] _MSE;
         
-        nb_MSE = nb_iterations/MSE_interval+1;
+        nb_MSE = nb_iterations/MSE_interval;
         _MSE = new float[nb_MSE];
     }
 
@@ -350,12 +350,17 @@ void MLP::train( int nb_iterations, float alpha, int MSE_interval )
 
         if( MSE_interval > 0 )
         {
+            float sampleMSE = 0.0;
             for( int j = 0; j < d[L-1]; j++ )
-                tmpMSE += pow( *X(L-1, j+1) - *expected_outputs(k, j), 2.0 );
+            {
+                float diff = *X(L-1, j+1) - *expected_outputs(k, j);
+                sampleMSE += diff * diff;
+            }
+            tmpMSE += sampleMSE/static_cast<float>( d[L-1] );
             
             if( (i+1)%MSE_interval == 0 )
             {
-                _MSE[MSE_index] = tmpMSE / static_cast<float>( d[L-1] * MSE_interval );
+                _MSE[MSE_index] = tmpMSE / static_cast<float>( MSE_interval );
                 MSE_index++;
                 tmpMSE = 0.0;
             }

@@ -46,8 +46,11 @@ int main()
         mlp.addElement( 4, x1, x2, y1, y2 );
     }
     
-    mlp.train( 100000, 0.01 );
+    mlp.train( 100000, 0.01, 999 );
 
     std::cout << "success rate : " << mlp.test() << "%\n";
+
+    for( int i = 0; i < mlp.getMSESize(); i++ )
+        std::cout << mlp.MSE(i) << std::endl;
     
 }
