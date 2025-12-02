@@ -111,9 +111,6 @@ void MLP::initElements( int nb_elements_alloc )
 
 void MLP::addElement( int count, ... )
 {
-    if( count != d[0]+d[L-1] )
-        throw std::runtime_error(std::string("count n'est pas égal à " + std::to_string(d[0]+d[L-1]) + " comme il devrait l'être ( " + std::to_string(count) + " donné à " + __FUNCTION__ + "() )"));
-
     va_list args;
     va_start( args, count );
 
@@ -128,11 +125,8 @@ void MLP::addElement( int count, ... )
     va_end( args ); 
 }
 
-void MLP::addElementArray( int count, float* array )
+void MLP::addElementArray( float* array )
 {
-    if( count != d[0]+d[L-1] )
-        throw std::runtime_error(std::string("count n'est pas égal à " + std::to_string(d[0]+d[L-1]) + " comme il devrait l'être ( " + std::to_string(count) + " donné à " + __FUNCTION__ + "() )"));
-
     nb_elements++;
     int index = 0;
 
@@ -395,11 +389,8 @@ void MLP::quickTrain()
 
 ////////////////////////////////////////////////////////////////////////////////////////////// PREDICTING METHODS
 
-void MLP::generatePrediction( int count, ... )
+void MLP::generatePrediction(  int count, ... )
 {
-    if( count != d[0] )
-        throw std::runtime_error(std::string("count n'est pas égal à " + std::to_string(d[0]) + " comme il devrait l'être ( " + std::to_string(count) + " donné à " + __FUNCTION__ + "() )"));
-
     va_list args;
     va_start( args, count );
 
@@ -411,11 +402,8 @@ void MLP::generatePrediction( int count, ... )
     propagate( -1 );
 }
 
-void MLP::generatePredictionArray( int count, float* array )
+void MLP::generatePredictionArray( float* array )
 {
-    if( count != d[0] )
-        throw std::runtime_error(std::string("count n'est pas égal à " + std::to_string(d[0]) + " comme il devrait l'être ( " + std::to_string(count) + " donné à " + __FUNCTION__ + "() )"));
-
     for( int i = 1; i <= d[0]; i++ )
         *X(0, i) = array[i-1];
 

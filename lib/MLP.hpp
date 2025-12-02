@@ -1,6 +1,8 @@
 #ifndef MLP_HPP
 #define MLP_HPP
 
+#define _CRT_NO_VA_START_VALIDATION
+
 #include <iostream>
 #include <cstdarg>
 #include <math.h>
@@ -9,6 +11,8 @@
 
 class MLP
 {
+    // vecteur utilisé seulement dans le constructeur variadique. Ne sert à rien autrement
+    std::vector<int> vector_d;
     // dicte si le réseau de neurones est utilisé pour classifier ou non
     bool is_used_for_classification = true;
     // nombre de neurones par couche, inclus la couche d'entrée
@@ -62,31 +66,24 @@ class MLP
     void retropropagate( int k, float alpha );
 
     public : 
-        MLP( int count, ... )  
+        template<typename... Ints>
+        MLP(Ints... values) : vector_d{ int(values)... } 
         {
-            if( count < 2 )
-            {
-                // exception
-            }
+            L = vector_d.size();
+            if( L < 2 )
+                throw std::runtime_error(std::string("Le nombre de couche donné doit être supérieur ou égal à 2 ( " + std::to_string(L) + " couches données au constructeur variadique )"));
 
-            L = count;
             d = new int[L];
-            va_list args;
-            va_start( args, count );
-
             for( int l = 0; l < L; l++ )
-                d[l] = va_arg( args, double );
-
-            va_end( args ); 
+                d[l] = vector_d[l];
+            vector_d.clear();
             init_matrices();
         }
 
         MLP( int count, int* d_init )  
         {
             if( count < 2 )
-            {
-                // exception
-            }
+                throw std::runtime_error(std::string("Le nombre de couche donné doit être supérieur ou égal à 2 ( " + std::to_string(count) + " couches données au constructeur traditionel )"));
 
             L = count;
             d = new int[L];
@@ -116,7 +113,7 @@ class MLP
         void initElements( int nb_elements_alloc );
         // Ajoute un élément aux inputs et expected_outputs
         void addElement( int count, ... );
-        void addElementArray( int count, float* array );
+        void addElementArray( float* array );
 
         // Entraine le réseau sur nb_iterations
         void train( int nb_iterations, float alpha, int MSE_interval = 0 );
@@ -124,7 +121,7 @@ class MLP
 
         // Génère une prédiction selon l'entrée donnée et calcule la sortie qui est stocké dans la dernière couche de X
         void generatePrediction( int count, ... );
-        void generatePredictionArray( int count, float* array );
+        void generatePredictionArray( float* array );
         // Renvoie la valeur du neurone à l'index+1 de la dernière couche de X
         float getPrediction( int index );
 
@@ -135,6 +132,9 @@ class MLP
         // Simple getters pour lire les valeurs de MSE
         int getMSESize() { return nb_MSE; }
         float MSE( int index ) { return _MSE[index]; }
+
+        int getNbInputNeurons() { return d[0]; }
+        int getNbOutputNeurons() { return d[L-1]; }
 };
 
 #endif
