@@ -20,6 +20,13 @@ void LinearModel::initElements( int nbElements )
     nb_elements = 0;
 }
 
+void LinearModel::initElementsTest( int nbElements )
+{
+    inputTest = Eigen::MatrixXf( nbElements, nb_components_of_element+1 );
+    outputTest = Eigen::VectorXf( nbElements );
+    nb_elementsTest = 0;
+}
+
 void LinearModel::addElement( int count, ... )
 {
     va_list args;
@@ -49,11 +56,36 @@ void LinearModel::addElementArray( float* array )
     nb_elements++;
 }
 
-void LinearModel::print()
+void LinearModel::addElementTestArray( float* array )
 {
-    std::cout << "X = \n" << input << std::endl << std::endl;
-    std::cout << "Y^T = \n" << output.transpose() << std::endl << std::endl;
-    std::cout << "W^T = \n" << weights.transpose() << std::endl << std::endl;
+    inputTest(nb_elementsTest, 0) = 1;
+
+    for( int i = 0; i < nb_components_of_element; i++ )
+        inputTest(nb_elementsTest, i+1) = array[i];
+
+    outputTest[nb_elementsTest] = array[nb_components_of_element];
+
+    nb_elementsTest++;
+}
+
+void LinearModel::print(bool printX, bool printY, bool printW, bool printMSE)
+{
+    if (printX)
+    {
+        std::cout << "X = \n" << input << std::endl << std::endl;
+    }
+    if (printY)
+    {
+        std::cout << "Y^T = \n" << output.transpose() << std::endl << std::endl;
+    }
+    if (printW)
+    {
+        std::cout << "W^T = \n" << weights.transpose() << std::endl << std::endl;
+    }
+    if (printMSE)
+    {
+        std::cout << "MSE = \n" << _MSE << std::endl << std::endl;
+    }
 }
 
 float LinearModel::predict( int count, ... )
@@ -85,8 +117,8 @@ float LinearModel::predictArray( float* array )
 float LinearModel::predictVector( Eigen::VectorXf& X_k_with_one )
 {
     Eigen::MatrixXf result = weights.transpose() * X_k_with_one;
-    //return is_used_for_classification ? ( result(0,0) < 0 ? -1.0 : 1.0 ) : result(0,0);
-    return is_used_for_classification ? tanh(result(0,0)) : result(0,0);
+    return is_used_for_classification ? ( result(0,0) < 0 ? -1.0 : 1.0 ) : result(0,0);
+    //return is_used_for_classification ? tanh(result(0,0)) : result(0,0);
 }
 
 void LinearModel::train( int nb_iterations, float alpha, int MSE_interval )
@@ -108,7 +140,7 @@ void LinearModel::train( int nb_iterations, float alpha, int MSE_interval )
 
         if( MSE_interval > 0 )
         {
-            tmpMSE += ( Y_k - g_X_k );
+            tmpMSE += ( Y_k - g_X_k ) * ( Y_k - g_X_k );
             
             if( (i+1)%MSE_interval == 0 )
             {
@@ -141,4 +173,22 @@ float LinearModel::test()
     }
 
     return (success*100.0)/static_cast<float>(nb_elements);
+}
+
+float LinearModel::realTest()
+{
+    float success = 0;
+
+    for( int k = 0; k < nb_elementsTest; k++ )
+    {
+        Eigen::VectorXf X_k_with_one = inputTest.row(k);
+        double Y_k = outputTest[k];
+
+        float g_X_k = predictVector(X_k_with_one);
+
+        if( ( Y_k < 0 && g_X_k < 0 ) || ( Y_k > 0 && g_X_k > 0 ) )
+            success += 1.0;
+    }
+
+    return (success*100.0)/static_cast<float>(nb_elementsTest);
 }

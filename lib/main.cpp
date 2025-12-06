@@ -2,8 +2,12 @@
 #include "MLP.hpp"
 #include "RBF.hpp"
 
+using namespace std;
+
 int main()
 {
+
+    /*
     RBF rbf(2, 0.1);
     int nb_elements = 200;
     rbf.setUsedForClassification( true );
@@ -24,20 +28,23 @@ int main()
     //rbf.print();
 
     std::cout << "success rate : " << rbf.test() << "%\n";
+    */
 
-    /*
     LinearModel lm(2);
 
+    lm.setUsedForClassification(true);
     lm.initElements( 4 );
     lm.addElement( 1.0, 1.0, 1.0 );
     lm.addElement( 2.0, 3.0, -1.0 );
     lm.addElement( 3.0, 3.0, -1.0 );
     lm.addElement( 3.0, 3.0, -1.0 );
     
-    lm.train( 100000, 0.01, 0 );
+    lm.train( 100000, 0.01, 1 );
 
     std::cout << "success rate : " << lm.test() << "%\n";
-    */
+
+    lm.print(false, false, false, true);
+
     /*
     int layers[2] = { 2, 1 };
     MLP mlp(2, layers);

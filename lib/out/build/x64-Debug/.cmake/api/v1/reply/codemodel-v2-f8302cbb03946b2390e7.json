@@ -1,0 +1,69 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "ML_Lib",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ML_Lib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ML_Lib-Debug-2176f21d066a8658497f.json",
+					"name" : "ML_Lib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ML_Test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ML_Test-Debug-49e207a59705d693b1e7.json",
+					"name" : "ML_Test",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/EM341/Documents/GitHub/Machine-Learning-LIRZIN-MAILLARD/lib/out/build/x64-Debug",
+		"source" : "C:/Users/EM341/Documents/GitHub/Machine-Learning-LIRZIN-MAILLARD/lib"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 8
+	}
+}

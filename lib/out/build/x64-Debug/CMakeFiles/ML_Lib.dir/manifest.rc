@@ -1,0 +1,2 @@
+#pragma code_page(65001)
+2 /* CREATEPROCESS_MANIFEST_RESOURCE_ID */ 24 /* RT_MANIFEST */ "C:/Users/EM341/Documents/GitHub/Machine-Learning-LIRZIN-MAILLARD/lib/out/build/x64-Debug/CMakeFiles/ML_Lib.dir/embed.manifest"
