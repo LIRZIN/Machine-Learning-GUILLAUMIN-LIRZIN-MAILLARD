@@ -192,3 +192,15 @@ float LinearModel::realTest()
 
     return (success*100.0)/static_cast<float>(nb_elementsTest);
 }
+
+float LinearModel::getWeight( int index ) {
+    return weights[index];
+}
+
+void LinearModel::setWeights( float* weight )
+{
+    for( int i = 0; i <= nb_components_of_element; i++ )
+    {
+        weights[i] = weight[i];
+    }
+}

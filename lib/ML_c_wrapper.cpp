@@ -125,6 +125,21 @@ extern "C"
     { 
         return reinterpret_cast<LinearModel*>(obj)->MSE( index ); 
     }
+
+    ML_EXPORT int LM_getNbInputNeurons( void* obj )
+    {
+        return reinterpret_cast<LinearModel*>(obj)->getNbInputNeurons();
+    }
+
+    ML_EXPORT float LM_getWeight( void* obj, int index)
+    {
+        reinterpret_cast<LinearModel*>(obj)->getWeight( index );
+    }
+
+    ML_EXPORT void LM_setWeights( void* obj, void* weights)
+    {
+        reinterpret_cast<LinearModel*>(obj)->setWeights( static_cast<float*>(weights) );
+    }
 }
 
 extern "C" 
