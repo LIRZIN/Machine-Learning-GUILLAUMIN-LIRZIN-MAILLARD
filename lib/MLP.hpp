@@ -106,7 +106,7 @@ class MLP
 
         void setUsedForClassification( bool val ) { is_used_for_classification = val; }
         // Imprime le contenu des toutes les matrices 
-        void print();
+        void print(int nbElementsToPrint);
 
         // Avant de donner des éléments au réseau, il faut déclarer le nombre d'éléments que l'utilisateur compte lui donner
         // Cela évite de faire de ré-allocation mémoire à chaque fois qu'on ajoute un élément
@@ -135,6 +135,10 @@ class MLP
 
         int getNbInputNeurons() { return d[0]; }
         int getNbOutputNeurons() { return d[L-1]; }
+        int getL() { return L; }
+        int getD(int index) { return d[index]; }
+        float getW(int layer, int neuron_out, int neuron_in) { return *W(layer, neuron_out, neuron_in); }
+        void setW(int layer, int neuron_out, int neuron_in, float weight) { *W(layer, neuron_out, neuron_in) = weight; }
 };
 
 #endif

@@ -137,7 +137,7 @@ void MLP::addElementArray( float* array )
         *expected_outputs( nb_elements-1, i ) = array[index];
 }
 
-void MLP::print()
+void MLP::print(int nbElementsToPrint)
 {
     std::cout << "d = ";
     for( int i = 0; i < L; i++ )
@@ -145,7 +145,7 @@ void MLP::print()
     std::cout << std::endl;
 
     std::cout << "inputs = " << std::endl;
-    for( int i = 0; i < nb_elements; i++ )
+    for( int i = 0; i < std::min(nb_elements, nbElementsToPrint); i++ )
     {
         for( int j = 0; j < d[0]; j++ )
             std::cout << *inputs(i, j) << " ";
@@ -155,7 +155,7 @@ void MLP::print()
     std::cout << std::endl;
 
     std::cout << "expected_outputs = " << std::endl;
-    for( int i = 0; i < nb_elements; i++ )
+    for( int i = 0; i < std::min(nb_elements, nbElementsToPrint); i++ )
     {
         for( int j = 0; j < d[L-1]; j++ )
             std::cout << *expected_outputs(i, j) << " ";

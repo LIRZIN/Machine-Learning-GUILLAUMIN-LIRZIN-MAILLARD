@@ -187,9 +187,9 @@ extern "C"
         reinterpret_cast<MLP*>(obj)->addElementArray( static_cast<float*>(array) ); 
     }
 
-    ML_EXPORT void MLP_print( void* obj )
+    ML_EXPORT void MLP_print( void* obj, int nbElementsToPrint )
     { 
-        reinterpret_cast<MLP*>(obj)->print(); 
+        reinterpret_cast<MLP*>(obj)->print(nbElementsToPrint);
     }
 
     ML_EXPORT void MLP_train( void* obj, int nb_iterations, float alpha, int MSE_interval )
@@ -243,6 +243,36 @@ extern "C"
     ML_EXPORT float MLP_MSE( void* obj, int index )
     { 
         return reinterpret_cast<MLP*>(obj)->MSE( index ); 
+    }
+
+    ML_EXPORT int MLP_getNbInputNeurons( void* obj)
+    {
+        return reinterpret_cast<MLP*>(obj)->getNbInputNeurons();
+    }
+
+    ML_EXPORT int MLP_getNbOutputNeurons( void* obj)
+    {
+        return reinterpret_cast<MLP*>(obj)->getNbOutputNeurons();
+    }
+
+    ML_EXPORT int MLP_getL( void* obj)
+    {
+        return reinterpret_cast<MLP*>(obj)->getL();
+    }
+
+    ML_EXPORT int MLP_getD( void* obj, int index)
+    {
+        return reinterpret_cast<MLP*>(obj)->getD(index);
+    }
+
+    ML_EXPORT float MLP_getW( void* obj, int layer, int neuron_out, int neuron_in)
+    {
+        return reinterpret_cast<MLP*>(obj)->getW(layer, neuron_out, neuron_in);
+    }
+
+    ML_EXPORT void MLP_setW( void* obj, int layer, int neuron_out, int neuron_in, float weight)
+    {
+        return reinterpret_cast<MLP*>(obj)->setW(layer, neuron_out, neuron_in, weight);
     }
 }
 
