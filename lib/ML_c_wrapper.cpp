@@ -133,7 +133,7 @@ extern "C"
 
     ML_EXPORT float LM_getWeight( void* obj, int index)
     {
-        reinterpret_cast<LinearModel*>(obj)->getWeight( index );
+        return reinterpret_cast<LinearModel*>(obj)->getWeight( index );
     }
 
     ML_EXPORT void LM_setWeights( void* obj, void* weights)
